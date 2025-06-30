@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import React, { useState, useReducer, useEffect, createContext, useContext, useMemo, FC } from 'react';
 import { useWindowDimensions } from 'react-native';
+=======
+import React from 'react';
+import FootballManager from '../football_manager';
+import { useWindowDimensions, View, Text } from 'react-native';
+>>>>>>> b243ab258fe18fe9ef17948f9a3cd56a3ca6e4bf
 
 // --- Ícones para a Web ---
 import {
