@@ -1,6 +1,7 @@
 import React from 'react';
 import FootballManager from '../football_manager';
 import { useWindowDimensions, View, Text } from 'react-native';
+import "../global.css";
 
 export default function Index() {
   const { width, height } = useWindowDimensions();
