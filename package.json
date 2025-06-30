@@ -2,7 +2,7 @@
   "name": "sevenxfoot",
   "main": "expo-router/entry",
   "version": "1.0.0",
-  "homepage": "https://riangamerofcyt.github.io/sevenxfoot", // <-- Adicione esta linha com o seu URL
+  "homepage": "https://sevenx777-dev.github.io", // <-- Adicione esta linha com o seu URL
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
