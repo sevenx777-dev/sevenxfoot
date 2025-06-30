@@ -1,9 +1,9 @@
 import React from 'react';
-// Importe o seu componente App principal do index.tsx
-import App from './index'; // Ajuste o caminho se o seu index.tsx não estiver no mesmo diretório
+import ReactDOM from 'react-dom/client';
+import App from './App'; // Importa o seu componente App principal
 
-export default function TabLayout() {
-  // Ao invés de renderizar as abas do Expo Router,
-  // renderizamos diretamente o seu componente App principal.
-  return <App />;
-}
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);
