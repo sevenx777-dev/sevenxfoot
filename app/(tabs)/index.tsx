@@ -2,6 +2,7 @@ import React from 'react';
 import FootballManager from '../football_manager';
 import { useWindowDimensions, View, Text } from 'react-native';
 
+
 export default function Index() {
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
