@@ -2,6 +2,7 @@
   "name": "sevenxfoot",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "homepage": "https://riangamerofcyt.github.io/sevenxfoot", // <-- Adicione esta linha com o seu URL
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -9,8 +10,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build": "expo export -p web",
-    "tailwind-init": "tailwindcss init"
+    "build": "expo export:web", // <-- Alterado de "expo export --platform web" para "expo export:web"
+    "tailwind-init": "tailwindcss init",
+    "predeploy": "npm run build",  // <-- Novo script: constrói a app antes do deploy
+    "deploy": "gh-pages -d web-build" // <-- Novo script: envia a pasta de build para gh-pages
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -19,9 +22,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@supabase/supabase-js": "^2.50.2",
-    "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.0.0",
+    // Removidas dependências de backend: "bcryptjs", "cors", "dotenv", "express", "pg", "google-auth-library"
     "eas-cli": "^16.13.2",
     "expo": "~53.0.13",
     "expo-blur": "~14.1.5",
@@ -36,11 +37,9 @@
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.9",
     "expo-web-browser": "~14.2.0",
-    "express": "^5.1.0",
     "lucide-react": "^0.525.0",
     "lucide-react-native": "^0.525.0",
     "nativewind": "^4.1.23",
-    "pg": "^8.16.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.4",
@@ -59,7 +58,8 @@
     "eslint-config-expo": "~9.2.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "gh-pages": "^6.1.1" // <-- Nova dependência
   },
   "private": true
 }
