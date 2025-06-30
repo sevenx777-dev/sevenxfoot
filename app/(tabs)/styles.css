@@ -76,15 +76,14 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Adicionado para garantir o scroll da página se o conteúdo for maior que a tela */
     overflow-y: auto;
-    overflow-x: hidden; /* Geralmente queremos evitar scroll horizontal na página */
+    overflow-x: hidden;
 }
 
 /* Global Layouts */
 .game-layout {
     background-color: var(--color-gray-100);
-    min-height: 100vh; /* Garante que ocupa a altura total da tela */
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -526,17 +525,19 @@ button:disabled {
     object-fit: contain;
     border-radius: var(--border-radius-full);
 }
-.header-team-logo-fallback {
-    width: var(--spacing-10);
-    height: var(--spacing-10);
+.image-fallback-container { /* Unificado com player-card-photo-fallback */
+    background-color: var(--color-gray-200);
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-gray-200);
     border-radius: var(--border-radius-full);
 }
+.header-team-logo.image-fallback-container {
+    width: var(--spacing-10);
+    height: var(--spacing-10);
+}
 @media (min-width: 640px) {
-    .header-team-logo, .header-team-logo-fallback { width: var(--spacing-12); height: var(--spacing-12); }
+    .header-team-logo, .header-team-logo.image-fallback-container { width: var(--spacing-12); height: var(--spacing-12); }
 }
 
 .header-club-name {
@@ -659,6 +660,30 @@ button:disabled {
     object-fit: contain;
 }
 
+.match-modal-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time */
+    width: var(--spacing-16);
+    height: var(--spacing-16);
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: var(--border-radius-full);
+}
+
+.match-modal-team-name {
+    font-weight: var(--font-semibold);
+    color: var(--color-gray-800);
+}
+
+.match-modal-team-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-500);
+}
+
+.match-modal-vs {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-bold);
+    color: var(--color-gray-400);
+}
+
 .match-modal-score {
     font-size: var(--font-size-4xl);
     font-weight: var(--font-bold);
@@ -767,15 +792,12 @@ button:disabled {
     border-radius: var(--border-radius-full);
     object-fit: cover;
 }
-.player-card-photo-fallback {
+.player-card-photo.image-fallback-container { /* Estilos de fallback para a foto do jogador */
     width: var(--spacing-16);
     height: var(--spacing-16);
     border-radius: var(--border-radius-full);
-    background-color: var(--color-gray-200);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
+
 
 .player-card-info {
     flex: 1;
@@ -975,6 +997,14 @@ button:disabled {
     margin-left: auto;
     margin-right: auto;
     object-fit: contain;
+}
+
+.next-match-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time no próximo jogo */
+    width: var(--spacing-16);
+    height: var(--spacing-16);
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: var(--border-radius-full);
 }
 
 .next-match-team-name {
@@ -1376,13 +1406,10 @@ button:disabled {
     width: var(--spacing-6);
     height: var(--spacing-6);
 }
-.editor-team-logo-fallback {
+.editor-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time no editor */
     width: var(--spacing-6);
     height: var(--spacing-6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-gray-200);
+    border-radius: var(--border-radius-full);
 }
 
 .editor-input {
@@ -1511,8 +1538,8 @@ button:disabled {
     font-weight: var(--font-semibold);
 }
 
-/* Footer Nav */
-.footer-nav {
+/* Footer Nav Bottom */
+.footer-nav-bottom { /* Antigo .footer-nav */
     width: 100%;
     text-align: center;
     padding: var(--spacing-4);
@@ -1523,7 +1550,7 @@ button:disabled {
     border-top: 1px solid var(--color-gray-200);
 }
 @media (min-width: 768px) { /* md breakpoint */
-    .footer-nav { position: static; background-color: transparent; backdrop-filter: none; border-top: none; }
+    .footer-nav-bottom { position: static; background-color: transparent; backdrop-filter: none; border-top: none; }
 }
 
 .footer-nav-inner {
@@ -1605,5 +1632,9 @@ button:disabled {
     to { transform: rotate(360deg); }
 }
 
-.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-/* pulse keyframes defined earlier with notification-modal */
+/* Já definido anteriormente para notification-modal */
+/* .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; } */
+/* @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+} */
