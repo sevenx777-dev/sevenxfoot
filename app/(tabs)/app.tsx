@@ -1,4 +1,5 @@
 import React, { useState, useReducer, useEffect, createContext, useContext, useMemo, FC } from 'react';
+import ReactDOM from 'react-dom/client'; // Importar ReactDOM para montar a aplicação
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -1093,6 +1094,61 @@ const TacticsScreen = () => {
     )
 }
 
+// Nova Tela do Gerente
+const ManagerScreen: FC = () => {
+    const { state, dispatch, handleAcceptManagerOffer, handleRejectManagerOffer } = useGame();
+
+    const getReputationDescription = (reputation: number) => {
+        if (reputation >= 90) return { text: "Lendário", colorClass: 'text-green-500' };
+        if (reputation >= 75) return { text: "Renomado", colorClass: 'text-blue-500' };
+        if (reputation >= 60) return { text: "Respeitável", colorClass: 'text-amber-500' };
+        if (reputation >= 40) return { text: "Promissor", colorClass: 'text-gray-400' };
+        return { text: "Desconhecido", colorClass: 'text-red-500' };
+    };
+
+    const reputationInfo = getReputationDescription(state.managerReputation);
+
+    return (
+        <div className="manager-container">
+            <h2 className="manager-title">Perfil do Gerente</h2>
+            <div className="manager-card">
+                <div className="manager-info">
+                    <User size={48} className="text-gray-400" />
+                    <div>
+                        <p className="manager-name">{state.managerName}</p>
+                        <p className="manager-reputation-label">Reputação: <span className={`font-bold ${reputationInfo.colorClass}`}>{reputationInfo.text} ({state.managerReputation})</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="manager-offers-section">
+                <h3 className="manager-offers-title">Ofertas de Emprego</h3>
+                {state.managerOffers.length === 0 ? (
+                    <p className="no-offers-message">Nenhuma oferta de emprego no momento.</p>
+                ) : (
+                    <ul className="offers-list">
+                        {state.managerOffers.map((offer, index) => (
+                            <li key={index} className="offer-item">
+                                <div className="offer-details">
+                                    <p className="offer-team-name">Oferta de: <strong>{offer.offeringTeamName}</strong></p>
+                                    <p className="offer-reputation">Reputação do Clube: {offer.offeringTeamReputation}</p>
+                                    <p className="offer-salary">Aumento Salarial: +{offer.salaryIncrease}%</p>
+                                    <p className="offer-reputation-change">Mudança de Reputação: {offer.reputationChange > 0 ? `+${offer.reputationChange}` : offer.reputationChange}</p>
+                                </div>
+                                <div className="offer-actions">
+                                    <button onClick={() => handleAcceptManagerOffer(offer)} className="offer-accept-btn">Aceitar</button>
+                                    <button onClick={() => handleRejectManagerOffer(offer)} className="offer-reject-btn">Rejeitar</button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
 const EditorScreen = () => {
     const { state, dispatch, apiService } = useGame();
     const [activeTab, setActiveTab] = useState('Community');
@@ -1405,6 +1461,7 @@ const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
     )
 }
 
+// Wrapper do Jogo: Gerencia o estado global e a navegação entre telas
 const GameWrapper = () => {
     const [gameState, dispatch] = useReducer(gameReducer, getInitialState());
     const { currentUser } = useAuth();
@@ -1413,7 +1470,6 @@ const GameWrapper = () => {
     useEffect(() => {
         const loadInitialDataAndUserGame = async () => {
             try {
-                // Load community patches (existing logic)
                 const patches = await apiService.getCommunityPatches();
                 dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
 
@@ -1544,7 +1600,8 @@ const GameWrapper = () => {
     );
 }
 
-const App = () => {
+// Componente Raiz da Aplicação
+export default function App() { // Exportação padrão do componente App
     return (
         <AuthProvider>
             <GameWrapper />
@@ -1552,6 +1609,4 @@ const App = () => {
     )
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-    React.createElement(App)
-);
+// O código de montagem da raiz (ReactDOM.createRoot) será no main.tsx ou index.tsx do seu projeto Vite/CRA
