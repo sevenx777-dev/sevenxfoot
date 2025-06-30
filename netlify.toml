@@ -1,0 +1,8 @@
+[build]
+  command = "expo export:web" # Comando para construir o seu projeto Expo para a web
+  publish = "web-build"       # O diretório de saída padrão do Expo para a web
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
