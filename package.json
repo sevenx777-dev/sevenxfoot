@@ -11,7 +11,7 @@
   "lint": "expo lint",
   "build": "expo export --platform web",
   "build": "[my-framework] build --output public"
-},
+}
 
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
