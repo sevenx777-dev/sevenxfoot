@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useEffect, createContext, useContext, useMemo, FC } from 'react';
-// import { useWindowDimensions } from 'react-native'; // Comentado: Geralmente para React Native, não web
+// Removido: import { useWindowDimensions } from 'react-native'; // Comentado: Geralmente para React Native, não web
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -7,7 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import {
     Users, Trophy, DollarSign, Calendar, TrendingUp, Target, Shield,
     Star, User, PlayCircle, RefreshCw, Mail, Briefcase, XCircle, LogIn, LogOut, Save,
-    BarChart, Crosshair, Shirt, Zap, PlusCircle, LucideIcon, LoaderCircle, Wrench, Upload, Send
+    BarChart, Crosshair, Shirt, Zap, PlusCircle, LucideIcon, LoaderCircle, Wrench, Upload, Send,
+    BriefcaseBusiness // Novo ícone para o Gerente
 } from 'lucide-react';
 
 // Importe o arquivo CSS
@@ -18,9 +19,16 @@ import './styles.css';
 // --- Configuração do Supabase ---
 // =================================================================================
 // Encontre estes valores no painel do seu projeto Supabase (Settings -> API)
-const supabaseUrl = 'https://iqzbuldbxhtkmbcmpisk.supabase.co'; // Ex: https://abcdefghijklm.supabase.co
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxemJ1bGRieGh0a21iY21waXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyOTQ3ODksImV4cCI6MjA2Njg3MDc4OX0.5rYcqgXI3zM2TRhWQy2EUwhiStOszv68Gk-lZ9ib51w';
+const supabaseUrl = 'https://iqzbuldbxhtkmbcmpisk.supabase.co'; 
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxemJ1bGRieGh0a21iY21waXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyOTQ3ODksImV4cCI6MjA2Njg3MDc4OX0.5rYcqgXI3zM2TRhWQy2EUwhiStOszv68Gk-lZ9ib51w'; // Chave anon do seu projeto Supabase
+
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// =================================================================================
+// --- URL de Produção do seu Frontend (Vercel) ---
+// ESSENCIAL: Use a URL COMPLETA do seu jogo no Vercel aqui.
+// Esta é a URL para a qual o Supabase deve redirecionar após a autenticação OAuth.
+const VERCEL_FRONTEND_URL = 'https://sevenxfoot-s5oa-q02nfkxts-rian7xs-projects.vercel.app/';
 
 // =================================================================================
 // --- SEÇÃO 1: CONSTANTES E TIPOS ---
@@ -163,6 +171,7 @@ type GameContextType = {
     handleAcceptIncomingOffer: (playerId: number) => void;
     handleRejectIncomingOffer: (playerId: number) => void;
     handleListForSale: (playerId: number, isForSale: boolean) => void;
+    apiService: typeof apiService; // Adicionado apiService ao contexto
 };
 const GameContext = createContext<GameContextType | undefined>(undefined);
 const useGame = () => {
@@ -322,21 +331,10 @@ const gameReducer = (state: GameState, action: Action): GameState => {
             return { ...state, leaguePlayers: state.leaguePlayers.map(p => p.id === action.payload.playerId ? { ...p, isForSale: action.payload.isForSale } : p) };
         case 'APPLY_PATCH': {
             const { teams, players, constants } = action.payload;
-            // Atualiza o overall dos times na classificação com base nos novos jogadores
-            const updatedStandings = state.standings.map(st => {
+            const newStandings = state.standings.map(st => {
                 const updatedTeam = teams.find(t => t.id === st.id);
-                const teamPlayers = players.filter(p => p.teamId === st.id);
-                const newOverall = teamPlayers.length > 0 ? teamPlayers.reduce((acc, p) => acc + p.overall, 0) / teamPlayers.length : 0;
-                return updatedTeam ? { ...st, name: updatedTeam.name, logoUrl: updatedTeam.logoUrl, overall: newOverall } : st;
+                return updatedTeam ? { ...st, name: updatedTeam.name, logoUrl: updatedTeam.logoUrl } : st;
             });
-            // Adiciona novos times que podem ter sido criados no patch
-            const newTeamsToAdd = teams.filter(team => !updatedStandings.some(st => st.id === team.id));
-            const newStandingsForAddedTeams = newTeamsToAdd.map(team => {
-                const teamPlayers = players.filter(p => p.teamId === team.id);
-                const newOverall = teamPlayers.length > 0 ? teamPlayers.reduce((acc, p) => acc + p.overall, 0) / teamPlayers.length : 0;
-                return { ...team, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, points: 0, overall: newOverall };
-            });
-
             return {
                 ...state,
                 leaguePlayers: players,
@@ -345,7 +343,7 @@ const gameReducer = (state: GameState, action: Action): GameState => {
                     teams: teams,
                     constants: constants,
                 },
-                standings: [...updatedStandings, ...newStandingsForAddedTeams].sort((a, b) => b.overall - a.overall) // Ordenar por overall para consistência
+                standings: newStandings
             };
         }
         case 'PUBLISH_PATCH': {
@@ -374,37 +372,26 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
     const simulateMatch = (homePlayers: Player[], awayPlayers: Player[]) => {
         const homeOverall = homePlayers.length > 0 ? homePlayers.reduce((acc, p) => acc + p.overall, 0) / homePlayers.length : 1;
         const awayOverall = awayPlayers.length > 0 ? awayPlayers.reduce((acc, p) => acc + p.overall, 0) / awayPlayers.length : 1;
-        const overallDifference = homeOverall - awayOverall + 5; // Adiciona um pequeno viés para o time da casa
+        const overallDifference = homeOverall - awayOverall + 5;
         let homeScore, awayScore;
-
-        // Lógica de placar baseada na diferença de overall
         if (overallDifference > 10) { homeScore = Math.floor(Math.random() * 3) + 2; awayScore = Math.floor(Math.random() * 2); }
         else if (overallDifference > 0) { homeScore = Math.floor(Math.random() * 2) + 1; awayScore = Math.floor(Math.random() * 2); }
         else if (overallDifference > -10) { homeScore = Math.floor(Math.random() * 2); awayScore = Math.floor(Math.random() * 2) + 1; }
         else { homeScore = Math.floor(Math.random() * 2); awayScore = Math.floor(Math.random() * 3) + 2; }
-
-        // Chance de empate em jogos equilibrados
         if (Math.abs(overallDifference) < 5 && Math.random() > 0.6) { const goals = Math.floor(Math.random() * 3); homeScore = goals; awayScore = goals; }
-
         return { homeScore, awayScore };
     };
 
     const processWeeklyPlayerUpdates = (players: Player[]) => {
         return players.map((p: Player) => {
             let newOverall = p.overall;
-            // Evolução de jogadores jovens
             if (p.age < 23 && p.potential > p.overall && Math.random() < constants.CHANCE_EVOLUCAO_JOVEM) newOverall++;
-            // Regressão de jogadores mais velhos
             else if (p.age > 30 && Math.random() < constants.CHANCE_REGRESSAO_VELHO) newOverall--;
             else if (p.age > 34 && Math.random() < constants.CHANCE_REGRESSAO_MUITO_VELHO) newOverall--;
-            
-            // Garante que o overall não seja menor que um mínimo (ex: 40)
-            newOverall = Math.max(40, newOverall);
-
             return {
                 ...p,
                 overall: newOverall,
-                energy: Math.min(100, p.energy + 15), // Recuperação de energia
+                energy: Math.min(100, p.energy + 15),
                 injuryDuration: Math.max(0, p.injuryDuration - 1),
                 suspensionDuration: Math.max(0, p.suspensionDuration - 1),
             };
@@ -418,7 +405,7 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
         for (const player of playersForSale) {
             if (Math.random() < constants.CHANCE_RECEBER_OFERTA_IA) {
                 const interestedTeam = teams.filter((t: Team) => t.id !== clubId)[Math.floor(Math.random() * (teams.length - 1))];
-                const offerAmount = Math.floor(player.value * (0.8 + Math.random() * 0.4)); // Oferta entre 80% e 120% do valor
+                const offerAmount = Math.floor(player.value * (0.8 + Math.random() * 0.4));
                 const incomingOffer: TransferOffer = {
                     playerId: player.id, playerName: player.name, offeringTeamId: interestedTeam.id,
                     offeringTeamName: interestedTeam.name, amount: offerAmount, status: 'pending', isIncoming: true, week,
@@ -442,28 +429,17 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
         const remainingOffers: TransferOffer[] = [];
 
         for (const offer of offers) {
-            if (offer.isIncoming) { // Se for uma oferta que recebemos, ela não é resolvida aqui, fica para o usuário aceitar/rejeitar
-                remainingOffers.push(offer);
-                continue;
-            }
-            if (offer.status !== 'pending') continue; // Só resolve ofertas pendentes que fizemos
-
+            if (offer.isIncoming) { remainingOffers.push(offer); continue; }
+            if (offer.status !== 'pending') continue;
             const player = playersInMarket.find((p: Player) => p.id === offer.playerId);
-            if (!player) { // Jogador pode já ter sido comprado por outro time da IA
-                messages.push({ week, type: 'transfer_offer_outgoing_rejected', title: `Oferta por ${offer.playerName} Cancelada`, body: `A oferta por ${offer.playerName} foi cancelada (jogador não disponível).`, payload: { ...offer, offerId: offer.playerId } });
-                continue;
-            }
+            if (!player) continue;
 
-            // Lógica para aceitação da oferta pela IA
             let accepted = (offer.amount >= player.value * 0.9 && Math.random() < constants.CHANCE_OFERTA_SAIDA_ACEITE_NORMAL) ||
                 (offer.amount >= player.value * 1.1 && Math.random() < constants.CHANCE_OFERTA_SAIDA_ACEITE_ALTA);
 
             if (accepted) {
-                // Remove o jogador do mercado
                 updatedMarket = updatedMarket.filter((p: Player) => p.id !== player.id);
-                // Adiciona o jogador ao seu time
                 updatedPlayers.push({ ...player, teamId: clubId, teamName: clubName, isForSale: false });
-                // Deduz o dinheiro
                 updatedMoney -= offer.amount;
                 messages.push({ week, type: 'transfer_offer_outgoing_accepted', title: `Oferta por ${player.name} Aceite!`, body: `${player.name} foi contratado!`, payload: { ...offer, offerId: player.id } });
             } else {
@@ -474,7 +450,6 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
     };
 
     const simulateWeek = () => {
-        if (state.isSimulating) return; // Evita múltiplas simulações
         dispatch({ type: 'START_SIMULATION' });
 
         setTimeout(() => {
@@ -486,22 +461,17 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
             let newClubMoney = state.club.money;
             let newClubMorale = state.club.morale;
 
-            // Pagamento de salários
             const totalSalaries = tempPlayers.filter((p: Player) => p.teamId === state.club.id).reduce((sum: number, p: Player) => sum + p.salary, 0);
             newClubMoney -= totalSalaries / constants.SALARY_WEEKLY_DIVISOR;
             weeklyMessages.push({ week: state.week, type: 'finance', title: 'Salários Semanais', body: `Pagamento de ${formatCurrency(totalSalaries / constants.SALARY_WEEKLY_DIVISOR)}.` });
 
-            // Simulação de Partidas
             const matchesThisWeek = state.schedule.filter((m: Match) => m.week === state.week);
             for (const match of matchesThisWeek) {
                 const homeTeam = tempStandings.find((t: TeamStanding) => t.id === match.homeTeamId)!;
                 const awayTeam = tempStandings.find((t: TeamStanding) => t.id === match.awayTeamId)!;
-                
-                // Filtra jogadores indisponíveis por lesão/suspensão
                 const homePlayers = tempPlayers.filter((p: Player) => p.teamId === homeTeam.id && p.injuryDuration === 0 && p.suspensionDuration === 0);
                 const awayPlayers = tempPlayers.filter((p: Player) => p.teamId === awayTeam.id && p.injuryDuration === 0 && p.suspensionDuration === 0);
 
-                // Reduz energia dos jogadores que participaram
                 [...homePlayers, ...awayPlayers].forEach((player: Player) => {
                     const playerRef = tempPlayers.find((p: Player) => p.id === player.id);
                     if (playerRef) playerRef.energy = Math.max(0, playerRef.energy - (Math.floor(Math.random() * 15) + 15));
@@ -516,7 +486,6 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
                     return t;
                 });
 
-                // Atualiza resultado da partida do jogador
                 if (homeTeam.id === state.club.id || awayTeam.id === state.club.id) {
                     playerMatchResult = { show: true, homeTeam, awayTeam, homeScore, awayScore };
                     const moraleChange = (homeTeam.id === state.club.id && outcome === 'win') || (awayTeam.id === state.club.id && outcome === 'loss') ? 3 : outcome === 'draw' ? 1 : -4;
@@ -525,7 +494,6 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
             }
             tempStandings.sort((a: TeamStanding, b: TeamStanding) => b.points - a.points || b.gd - a.gd);
 
-            // Resolução de ofertas de saída (que o jogador fez)
             const offerResolution = resolveOutgoingOffers(state.transferOffers, tempMarketPlayers, tempPlayers, state.club.id, state.club.name, newClubMoney, state.week);
             newClubMoney = offerResolution.updatedMoney;
             tempPlayers = offerResolution.updatedPlayers;
@@ -533,19 +501,16 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
             weeklyMessages.push(...offerResolution.messages);
             let currentOffers = offerResolution.remainingOffers;
 
-            // IA faz ofertas pelos seus jogadores listados
             const aiOffers = handleAITransferOffers(tempPlayers, state.club.id, state.database.teams, state.week);
             currentOffers.push(...aiOffers.offers);
             weeklyMessages.push(...aiOffers.messages);
 
-            // Atualização semanal dos jogadores (idade, overall, energia)
             let updatedPlayers = processWeeklyPlayerUpdates(tempPlayers);
 
             let newWeek = state.week + 1;
             let season = state.season;
 
-            // Fim da temporada
-            if (state.week >= (state.database.teams.length - 1) * 2) { // Ex: 4 times -> 3*2 = 6 semanas
+            if (state.week >= (state.database.teams.length - 1) * 2) {
                 newWeek = 1;
                 season++;
                 const champion = tempStandings[0];
@@ -554,9 +519,7 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
                     newClubMoney += constants.PREMIO_CAMPEAO_LIGA;
                     weeklyMessages.push({ week: state.week, type: 'finance', title: 'Prémio de Campeão!', body: `Você recebeu ${formatCurrency(constants.PREMIO_CAMPEAO_LIGA)}!` });
                 }
-                // Reseta estatísticas de jogadores, incrementa idade, ajusta contratos
-                updatedPlayers = updatedPlayers.map((p: Player) => ({ ...p, goals: 0, assists: 0, age: p.age + 1, contract: p.contract > season ? p.contract : season + 1 })); // Garante que o contrato não seja passado
-                // Reseta classificação
+                updatedPlayers = updatedPlayers.map((p: Player) => ({ ...p, goals: 0, assists: 0, age: p.age + 1, contract: p.contract > season ? p.contract : season + 1 }));
                 tempStandings = tempStandings.map((t: TeamStanding) => ({ ...t, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, points: 0 }));
             }
 
@@ -566,7 +529,7 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
                     newClubMoney, newClubMorale, updatedPlayers, updatedMarket: tempMarketPlayers, newWeek, newTransferOffers: currentOffers, season
                 }
             });
-        }, 1000); // 1 segundo de delay para simulação
+        }, 1000);
     };
 
     return { simulateWeek };
@@ -576,14 +539,294 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
 // --- SEÇÃO 6: COMPONENTES DE UI ---
 // =================================================================================
 
-// Componente para imagem com fallback (se a URL falhar, mostra um ícone)
 const ImageWithFallback: FC<{ src?: string; fallback: React.ReactNode; className: string }> = ({ src, fallback, className }) => {
     const [error, setError] = useState(false);
     useEffect(() => {
-        setError(false); // Resetar erro quando a URL src muda
+        setError(false);
     }, [src]);
     if (!src || error) { return <div className={`${className} image-fallback-container`}>{fallback}</div>; }
     return <img src={src} onError={() => setError(true)} className={className} alt="" />;
+};
+
+// Serviço de API para interagir com o Supabase
+const apiService = {
+    async registerUser(email: string, password: string) {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+            console.error('Erro no registo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Registo Supabase bem-sucedido:', data);
+        return true;
+    },
+
+    async loginUser(email: string, password: string) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            console.error('Erro no login Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Login Supabase bem-sucedido:', data);
+        return { id: data.user?.id || '', email: data.user?.email || '' };
+    },
+
+    async googleLogin() {
+        // Redireciona para o fluxo de autenticação do Google via Supabase
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                // AGORA APONTA DIRETAMENTE PARA A URL DE PRODUÇÃO DO SEU JOGO NO VERCEL
+                redirectTo: VERCEL_FRONTEND_URL 
+            }
+        });
+        if (error) {
+            console.error('Erro ao iniciar login Google com Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        // O Supabase irá lidar com o redirecionamento e o callback.
+        // O login será detetado pelo onAuthStateChange no AuthProvider.
+        return null; // Não retorna o utilizador aqui, será via onAuthStateChange
+    },
+
+    async saveGame(userId: string, gameState: GameState) { // userId é string no Supabase
+        const { data, error } = await supabase
+            .from('saved_games')
+            .upsert({ user_id: userId, game_state: gameState }, { onConflict: 'user_id' }); // user_id é a chave primária
+
+        if (error) {
+            console.error('Erro ao salvar jogo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Jogo salvo com sucesso no Supabase:', data);
+        return true;
+    },
+
+    async loadGame(userId: string): Promise<GameState | null> { // userId é string no Supabase
+        const { data, error } = await supabase
+            .from('saved_games')
+            .select('game_state')
+            .eq('user_id', userId)
+            .single(); // Espera um único resultado
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 é "no rows found", que é ok
+            console.error('Erro ao carregar jogo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Jogo carregado do Supabase:', data);
+        return data ? data.game_state : null;
+    },
+
+    async publishPatch(author: string, version: string, data: object) {
+        const { data: newPatch, error } = await supabase
+            .from('community_patches')
+            .insert({ author, version, data });
+
+        if (error) {
+            console.error('Erro ao publicar patch Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Patch publicado com sucesso no Supabase:', newPatch);
+        return true;
+    },
+
+    async getCommunityPatches(): Promise<PublishedPatch[]> {
+        const { data, error } = await supabase
+            .from('community_patches')
+            .select('*')
+            .order('created_at', { ascending: false }); // Ordena por data de criação
+
+        if (error) {
+            console.error('Erro ao obter patches da comunidade Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Patches da comunidade carregados do Supabase:', data);
+        return data as PublishedPatch[];
+    },
+};
+
+
+const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) => void; onLoadGame: (state: GameState) => void; teams: Team[] }> = ({ onStartGame, onLoadGame, teams }) => {
+    const { currentUser, login, logout } = useAuth();
+    const [showLogin, setShowLogin] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const [managerName, setManagerName] = useState('');
+    const [selectedTeamId, setSelectedTeamId] = useState(teams[0].id);
+
+    // Efeito para lidar com o redirecionamento do Supabase Auth (já presente no AuthProvider)
+    useEffect(() => {
+    }, []);
+
+    const handleAuthAction = async () => {
+        try {
+            if(isRegistering) {
+                await apiService.registerUser(email, password);
+                alert('Registo efetuado com sucesso! Por favor, faça login.');
+                setIsRegistering(false);
+            } else {
+                const user = await apiService.loginUser(email, password);
+                if (user) {
+                    login(user);
+                    setShowLogin(false);
+                } else {
+                    alert('E-mail ou senha inválidos.');
+                }
+            }
+        } catch (error: any) {
+            alert(error.message);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            await apiService.googleLogin();
+            // O Supabase irá redirecionar ou abrir um popup.
+            // A sessão será detetada pelo onAuthStateChange no AuthProvider.
+        } catch (error: any) {
+            alert(error.message);
+        }
+    };
+
+    const handleLoadGame = async () => {
+        if(!currentUser) {
+            alert("Precisa de fazer login para carregar o jogo.");
+            return;
+        }
+        try {
+            const savedGame = await apiService.loadGame(currentUser.id);
+            if(savedGame) {
+                onLoadGame(savedGame);
+            } else {
+                alert("Nenhum jogo salvo encontrado para este utilizador.");
+            }
+        } catch (error: any) {
+            alert(error.message);
+        }
+    }
+
+    const handleSubmitNewGame = () => { if (managerName.trim()) onStartGame(managerName, selectedTeamId); };
+    return (
+        <>
+            <div className="main-menu-container">
+                <div className="main-menu-card">
+                    <h1 className="main-menu-title">Football Manager</h1>
+                    <div className="main-menu-auth-status">
+                        {currentUser ? (
+                            <div className="main-menu-auth-signed-in">
+                                <p className="text-gray-300">Bem-vindo, {currentUser.email}!</p>
+                                <button onClick={logout} className="main-menu-auth-logout-btn">Logout</button>
+                            </div>
+                        ) : (
+                               <button onClick={() => { setIsRegistering(false); setShowLogin(true); }} className="main-menu-auth-logout-btn">Login para Salvar/Carregar</button>
+                        )}
+                    </div>
+
+                    <div className="space-y-4">
+                        <p className="main-menu-new-game-section text-center text-gray-400">Novo Jogo</p>
+                        <input type="text" placeholder="O seu nome de treinador" value={managerName} onChange={(e) => setManagerName(e.target.value)} className="main-menu-input light-bg" />
+                        <div className="main-menu-input-group">
+                            <select value={selectedTeamId} onChange={(e) => setSelectedTeamId(Number(e.target.value))} className="main-menu-input light-bg">
+                                {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+                            </select>
+                            <div className="main-menu-select-arrow">
+                               <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                            </div>
+                        </div>
+                        <button onClick={handleSubmitNewGame} disabled={!managerName.trim()} className="main-menu-button main-menu-start-btn">
+                            <PlayCircle size={20} />
+                            <span>Iniciar Carreira</span>
+                        </button>
+                        <button onClick={handleLoadGame} disabled={!currentUser} className="main-menu-button main-menu-load-btn">
+                            <Upload size={20} />
+                            <span>Carregar Jogo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <Modal isOpen={showLogin} onClose={() => setShowLogin(false)} maxWidth="max-w-sm">
+                <div className="p-6">
+                    <div className="login-modal-header">
+                        <button onClick={() => setIsRegistering(false)} className={`login-modal-tab-button ${!isRegistering ? 'active' : ''}`}>Login</button>
+                        <button onClick={() => setIsRegistering(true)} className={`login-modal-tab-button ${isRegistering ? 'active' : ''}`}>Registar</button>
+                    </div>
+                    <div className="space-y-4">
+                        <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="login-modal-input" />
+                        <input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} className="login-modal-input" />
+                    </div>
+                     <div className="login-modal-actions">
+                        <button onClick={() => setShowLogin(false)} className="login-modal-cancel-btn">Cancelar</button>
+                        <button onClick={handleAuthAction} className="login-modal-submit-btn">{isRegistering ? 'Registar' : 'Entrar'}</button>
+                    </div>
+                    <div className="google-signin-separator">
+                        <span>OU</span>
+                    </div>
+                    {/* Botão Google simples - Supabase lida com o fluxo */}
+                    <button onClick={handleGoogleLogin} className="google-login-button">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_de_Google_%282015%29.svg" alt="Google logo" className="google-logo"/>
+                        Entrar com Google
+                    </button>
+                </div>
+            </Modal>
+        </>
+    );
+};
+
+const Header = () => {
+    const { state } = useGame();
+    const { currentUser } = useAuth();
+    const currentTeam = useMemo(() => state.standings.find(t => t.id === state.club.id), [state.standings, state.club.id]);
+    const totalWeeks = (state.database.teams.length - 1) * 2;
+
+    const saveGame = async () => {
+        if (!currentUser) {
+            alert("Precisa de fazer login para salvar o jogo.");
+            return;
+        }
+        try {
+            const success = await apiService.saveGame(currentUser.id, state);
+            if (success) {
+                alert("Jogo salvo com sucesso!");
+            } else {
+                alert("Erro ao salvar o jogo. Verifique a consola.");
+            }
+        } catch (error: any) {
+            console.error("Failed to save game:", error);
+            alert(error.message);
+        }
+    }
+
+    return (
+        <header className="header">
+            <div className="header-content">
+                <div className="header-team-info">
+                    <ImageWithFallback src={currentTeam?.logoUrl} fallback={<Shield size={24} className="text-gray-400" />} className="header-team-logo" />
+                    <div>
+                        <h2 className="header-club-name">{state.club.name}</h2>
+                        <div className="header-manager-info">
+                            <User size={14} />
+                            <span>{state.managerName}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="header-right-section">
+                    <div className="header-week-progress">
+                        <p className="text-sm font-medium text-gray-600">Semana {state.week} / {totalWeeks}</p>
+                        <div className="header-week-progress-bar">
+                            <div className="header-week-progress-fill" style={{ width: `${(state.week / totalWeeks) * 100}%` }}></div>
+                        </div>
+                    </div>
+                    {currentUser && (
+                            <button onClick={saveGame} className="header-save-button">
+                                <Save size={16} />
+                                <span>Salvar</span>
+                            </button>
+                    )}
+                </div>
+            </div>
+        </header>
+    );
 };
 
 // Componente de Modal genérico
@@ -714,11 +957,11 @@ const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ playe
                             </>
                         )}
                         {inTransferMarket && (
-                               <button onClick={openOfferModal} className="player-card-action-btn offer">Ofertar</button>
+                             <button onClick={openOfferModal} className="player-card-action-btn offer">Ofertar</button>
                         )}
                     </div>
                 </div>
-                   {incomingOffer && isUsersPlayer && (
+                 {incomingOffer && isUsersPlayer && (
                     <div className="player-card-incoming-offer">
                         Oferta de <strong>{formatCurrency(incomingOffer.amount)}</strong> por <strong>{incomingOffer.offeringTeamName}</strong>
                     </div>
@@ -915,7 +1158,7 @@ const Header = () => {
                         </div>
                     </div>
                     {currentUser && (
-                           <button onClick={saveGame} className="header-save-button">
+                            <button onClick={saveGame} className="header-save-button">
                                 <Save size={16} />
                                 <span>Salvar</span>
                             </button>
@@ -926,7 +1169,160 @@ const Header = () => {
     );
 };
 
-// Tela de Painel (Dashboard)
+// Componente de Modal genérico
+const Modal: FC<{ children: React.ReactNode; isOpen: boolean; onClose: () => void; maxWidth?: string }> = ({ children, isOpen, onClose, maxWidth = 'max-w-lg' }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className={`modal-content ${maxWidth}`} onClick={e => e.stopPropagation()}>
+                {children}
+            </div>
+        </div>
+    );
+};
+
+// Modal de Resultado da Partida
+const MatchResultModal: FC<{ result: GameState['matchResult'] | null; onClose: () => void }> = ({ result, onClose }) => {
+    if (!result || !result.show) return null;
+    const outcome = result.homeScore > result.awayScore ? 'win' : result.homeScore < result.awayScore ? 'loss' : 'draw';
+    const stylesByOutcome = {
+        win: { bg: 'bg-green', icon: <Star size={32} />, text: 'Vitória!' },
+        loss: { bg: 'bg-red', icon: <XCircle size={32} />, text: 'Derrota' },
+        draw: { bg: 'bg-amber', icon: <Shield size={32} />, text: 'Empate' }
+    };
+    const { bg, icon, text } = stylesByOutcome[outcome];
+
+    return (
+        <Modal isOpen={result.show} onClose={onClose}>
+            <div className={`match-modal-header ${bg}`}>
+                <h3 className="text-2xl font-bold">{text}</h3>
+                {icon}
+            </div>
+            <div className="match-modal-body space-y-4">
+                <p className="match-modal-score-label">Resultado Final</p>
+                <div className="match-modal-teams-container">
+                    <div className="match-modal-team-info space-y-2">
+                        <ImageWithFallback src={result.homeTeam.logoUrl} fallback={<Shield size={32} />} className="match-modal-team-logo" />
+                        <p className="font-semibold text-gray-800">{result.homeTeam.name}</p>
+                    </div>
+                    <p className={`match-modal-score ${bg}`}>{result.homeScore} - {result.awayScore}</p>
+                    <div className="match-modal-team-info space-y-2">
+                        <ImageWithFallback src={result.awayTeam.logoUrl} fallback={<Shield size={32} />} className="match-modal-team-logo" />
+                        <p className="font-semibold text-gray-800">{result.awayTeam.name}</p>
+                    </div>
+                </div>
+                <button onClick={onClose} className="match-modal-continue-btn">Continuar</button>
+            </div>
+        </Modal>
+    );
+};
+
+// Modal de Notificação
+const NotificationModal: FC<{ notification: Payload | null; onClose: () => void }> = ({ notification, onClose }) => {
+    useEffect(() => {
+        if (notification?.show) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification, onClose]);
+
+    if (!notification || !notification.show) return null;
+
+    return (
+        <div className="notification-modal animate-pulse">
+            <div className="notification-content">
+                <div className="notification-icon-container">
+                    <Mail size={14} className="text-white"/>
+                </div>
+                <div className="notification-text-content">
+                    <p className="notification-title">{notification.title}</p>
+                    <p className="notification-message">{notification.message}</p>
+                </div>
+                <button onClick={onClose} className="notification-close-btn"><XCircle size={20}/></button>
+            </div>
+        </div>
+    );
+};
+
+// Cartão de Jogador (exibição e ações)
+const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ player, inTransferMarket = false }) => {
+    const { state, handleListForSale, handleAcceptIncomingOffer, handleRejectIncomingOffer, handleMakeOffer } = useGame();
+    const isUsersPlayer = player.teamId === state.club.id;
+    const incomingOffer = useMemo(() => state.transferOffers.find(o => o.isIncoming && o.status === 'pending' && o.playerId === player.id), [state.transferOffers, player.id]);
+
+    const [offerModalVisible, setOfferModalVisible] = useState(false);
+    const [offerAmount, setOfferAmount] = useState('');
+
+    const openOfferModal = () => {
+        setOfferAmount(player.value.toString());
+        setOfferModalVisible(true);
+    };
+
+    const submitOffer = () => {
+        handleMakeOffer(player.id, player.name, Number(offerAmount));
+        setOfferModalVisible(false);
+    }
+
+    return (
+        <>
+            <div className="player-card">
+                <div className="player-card-header">
+                    <ImageWithFallback src={player.photoUrl} fallback={<User size={32} className="text-gray-400" />} className="player-card-photo" />
+                    <div className="player-card-info">
+                        <p className="player-card-name">{player.name}</p>
+                        <p className="player-card-details">{player.position} | {player.age} anos</p>
+                    </div>
+                    <div className="player-card-overall-section">
+                        <p className="player-card-overall">{player.overall}</p>
+                        <div className="player-card-energy-bar-bg"><div className={`${getEnergyColor(player.energy)} player-card-energy-bar-fill`} style={{width: `${player.energy}%`}}></div></div>
+                    </div>
+                </div>
+                <div className="player-card-footer">
+                    <div className="player-card-stats">
+                       <p>Valor: <span className="font-bold text-gray-800">{formatCurrency(player.value)}</span></p>
+                       <p>Contrato: <span className="font-bold text-gray-800">{player.contract}</span></p>
+                    </div>
+                    <div className="player-card-actions">
+                        {isUsersPlayer && !incomingOffer && (
+                            <button onClick={() => handleListForSale(player.id, !player.isForSale)} className={`player-card-action-btn ${player.isForSale ? 'retire' : 'sell'}`}>
+                                {player.isForSale ? 'Retirar' : 'Vender'}
+                            </button>
+                        )}
+                        {isUsersPlayer && incomingOffer && (
+                            <>
+                                <button onClick={() => handleAcceptIncomingOffer(player.id)} className="player-card-action-btn accept">Aceitar</button>
+                                <button onClick={() => handleRejectIncomingOffer(player.id)} className="player-card-action-btn reject">Rejeitar</button>
+                            </>
+                        )}
+                        {inTransferMarket && (
+                             <button onClick={openOfferModal} className="player-card-action-btn offer">Ofertar</button>
+                        )}
+                    </div>
+                </div>
+                 {incomingOffer && isUsersPlayer && (
+                    <div className="player-card-incoming-offer">
+                        Oferta de <strong>{formatCurrency(incomingOffer.amount)}</strong> por <strong>{incomingOffer.offeringTeamName}</strong>
+                    </div>
+                )}
+            </div>
+             <Modal isOpen={offerModalVisible} onClose={() => setOfferModalVisible(false)}>
+                <div className="p-6">
+                    <h3 className="text-xl font-bold mb-4">Fazer Oferta por {player.name}</h3>
+                    <p className="text-gray-600 mb-2">Valor de mercado: {formatCurrency(player.value)}</p>
+                    <p className="text-gray-600 mb-4">Seu dinheiro: {formatCurrency(state.club.money)}</p>
+                    <input type="number" value={offerAmount} onChange={e => setOfferAmount(e.target.value)} className="offer-modal-input" />
+                    <div className="offer-modal-actions">
+                        <button onClick={() => setOfferModalVisible(false)} className="offer-modal-cancel-btn">Cancelar</button>
+                        <button onClick={submitOffer} className="offer-modal-confirm-btn" disabled={Number(offerAmount) > state.club.money || Number(offerAmount) <= 0}>Confirmar</button>
+                    </div>
+                </div>
+            </Modal>
+        </>
+    )
+}
+
 const DashboardScreen = () => {
     const { state } = useGame();
     const playerTeam = useMemo(() => state.standings.find(t => t.id === state.club.id), [state.standings, state.club.id]);
@@ -999,7 +1395,6 @@ const DashboardScreen = () => {
     );
 };
 
-// Tela de Plantel (Players)
 const PlayersScreen = () => {
     const { state } = useGame();
     const clubPlayers = useMemo(() => state.leaguePlayers.filter(p => p.teamId === state.club.id).sort((a, b) => b.overall - a.overall), [state.leaguePlayers, state.club.id]);
@@ -1017,7 +1412,6 @@ const PlayersScreen = () => {
     )
 }
 
-// Tela de Mercado de Transferências
 const MarketScreen = () => {
     const { state } = useGame();
     const availablePlayers = useMemo(() => state.transferMarketPlayers.sort((a,b) => b.overall - a.overall), [state.transferMarketPlayers]);
@@ -1030,7 +1424,6 @@ const MarketScreen = () => {
                     <div className="market-no-players">
                         <Briefcase size={48} className="icon" />
                         <p className="mt-4 font-semibold">Mercado Vazio</p>
-                        <p className="text-sm">Contrate jogadores para o seu clube.</p>
                     </div>
                 )}
             </div>
@@ -1038,7 +1431,6 @@ const MarketScreen = () => {
     )
 }
 
-// Tela de Classificação
 const StandingsScreen = () => {
     const { state } = useGame();
     return(
@@ -1079,7 +1471,6 @@ const StandingsScreen = () => {
     )
 }
 
-// Tela de Táticas
 const TacticsScreen = () => {
     const { state, dispatch } = useGame();
     const formations: Formation[] = ['4-4-2', '4-3-3', '5-3-2'];
@@ -1098,7 +1489,6 @@ const TacticsScreen = () => {
     )
 }
 
-// Tela do Editor (Aprimorada)
 const EditorScreen = () => {
     const { state, dispatch } = useGame();
     const [activeTab, setActiveTab] = useState('Community');
@@ -1106,12 +1496,6 @@ const EditorScreen = () => {
     const [publishModalOpen, setPublishModalOpen] = useState(false);
     const [authorName, setAuthorName] = useState('');
     const [patchVersion, setPatchVersion] = useState('1.0');
-
-    // NOVOS ESTADOS PARA ADICIONAR TIME
-    const [addTeamModalOpen, setAddTeamModalOpen] = useState(false);
-    const [newTeamName, setNewTeamName] = useState('');
-    const [newTeamLogoUrl, setNewTeamLogoUrl] = useState('');
-
 
     const [editableTeams, setEditableTeams] = useState<Team[]>([]);
     const [editablePlayers, setEditablePlayers] = useState<Player[]>([]);
@@ -1178,48 +1562,6 @@ const EditorScreen = () => {
         }));
     }
 
-    // NOVA FUNÇÃO: ADICIONAR NOVO TIME
-    const handleAddNewTeam = () => {
-        if (!newTeamName.trim()) {
-            dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro', message: 'O nome do time não pode estar vazio!' } });
-            return;
-        }
-
-        // Gerar um novo ID para o time. Usamos Date.now() + Math.random() para garantir uma alta probabilidade de unicidade.
-        const newTeamId = Date.now() + Math.floor(Math.random() * 1000); // Adiciona um número aleatório para maior unicidade em ms próximos
-        
-        // Gerar jogadores para o novo time
-        const newPlayersForTeam: Player[] = [];
-        const positions: PlayerPosition[] = ['GOL', 'ZAG', 'LAT', 'VOL', 'MEI', 'ATA'];
-        // Criamos um número razoável de jogadores para o novo time (exemplo: 1 GOL, 4 ZAG/LAT, 3 VOL/MEI, 3 ATA)
-        positions.forEach(pos => {
-            let count = 0;
-            if (pos === 'GOL') count = 1;
-            else if (pos === 'ZAG' || pos === 'LAT') count = 2; // 2 ZAG, 2 LAT
-            else if (pos === 'VOL' || pos === 'MEI') count = 2; // 2 VOL, 1 MEI (ajuste conforme o ideal para um elenco)
-            else if (pos === 'ATA') count = 3; // 3 ATA
-
-            for (let i = 0; i < count; i++) {
-                newPlayersForTeam.push(generatePlayer(newTeamId, newTeamName, pos, state.database.constants));
-            }
-        });
-
-        const newTeam: Team = {
-            id: newTeamId,
-            name: newTeamName,
-            logoUrl: newTeamLogoUrl || 'https://via.placeholder.com/96x96.png?text=Logo', // Logo padrão se nenhum for fornecido
-        };
-
-        setEditableTeams(prevTeams => [...prevTeams, newTeam]);
-        setEditablePlayers(prevPlayers => [...prevPlayers, ...newPlayersForTeam]);
-
-        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Sucesso', message: `Time "${newTeamName}" adicionado!` } });
-        setAddTeamModalOpen(false); // Fechar o modal
-        setNewTeamName(''); // Limpar formulário
-        setNewTeamLogoUrl(''); // Limpar formulário
-    };
-
-
     return (
         <div className="editor-container space-y-6">
             <h1 className="editor-title">Editor de Patches</h1>
@@ -1231,7 +1573,7 @@ const EditorScreen = () => {
 
             <div className="editor-content-card">
                 {activeTab === 'Community' && (
-                    <div className="community-patches-section space-y-4">
+                     <div className="community-patches-section space-y-4">
                          <h3 className="community-patches-title">Navegar por Patches da Comunidade</h3>
                          {state.communityPatches.length === 0 ? (
                             <p className="no-patches-message">Nenhum patch foi publicado ainda. Seja o primeiro a criar um na aba 'Criar Patch'!</p>
@@ -1254,68 +1596,43 @@ const EditorScreen = () => {
                 )}
                 {activeTab === 'Creator' && (
                     <div className="creator-section space-y-6">
-                        <details className="editor-details" open> {/* 'open' para abrir por padrão no editor */}
-                            <summary>Equipas</summary>
+                        <details className="editor-details"><summary>Equipas</summary>
                             <div className="editor-details-content-grid teams-grid">
                                 {editableTeams.map(team => (
                                     <div key={team.id} className="editor-field-group">
-                                        <div className="editor-team-input-group">
-                                            <ImageWithFallback src={team.logoUrl} fallback={<Shield size={20}/>} className="editor-team-logo"/>
-                                            <span>{team.name}</span>
-                                        </div>
+                                        <div className="editor-team-input-group"><ImageWithFallback src={team.logoUrl} fallback={<Shield size={20}/>} className="editor-team-logo"/><span>{team.name}</span></div>
                                         <input type="text" placeholder="Nome da Equipa" value={team.name} onChange={e => handleTeamDataChange(team.id, 'name', e.target.value)} className="editor-input"/>
                                         <input type="text" placeholder="URL do Logo" value={team.logoUrl} onChange={e => handleTeamDataChange(team.id, 'logoUrl', e.target.value)} className="editor-input"/>
                                     </div>
                                 ))}
                             </div>
-                            {/* NOVO BOTÃO PARA ADICIONAR TIME */}
-                            <button onClick={() => setAddTeamModalOpen(true)} className="add-new-team-button">
-                                <PlusCircle size={18}/><span>Adicionar Novo Time</span>
-                            </button>
                         </details>
-                        <details className="editor-details">
-                            <summary>Jogadores</summary>
-                            <div className="editor-players-list">
+                         <details className="editor-details"><summary>Jogadores</summary>
+                             <div className="editor-players-list">
                                 {editablePlayers.map(player => (
-                                    <details key={player.id} className="editor-player-item">
-                                        <summary className="editor-player-summary">{player.name} ({player.teamName}) - OVR: {player.overall}</summary>
-                                        <div className="editor-player-fields-grid">
-                                            <div><label className="editor-field-label">Nome</label><input type="text" value={player.name} onChange={e => handlePlayerChange(player.id, 'name', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Foto (URL)</label><input type="text" value={player.photoUrl} onChange={e => handlePlayerChange(player.id, 'photoUrl', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Idade</label><input type="number" value={player.age} onChange={e => handlePlayerChange(player.id, 'age', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Overall</label><input type="number" value={player.overall} onChange={e => handlePlayerChange(player.id, 'overall', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Potencial</label><input type="number" value={player.potential} onChange={e => handlePlayerChange(player.id, 'potential', e.target.value)} className="editor-input"/></div>
-                                            {/* Novas opções de edição para jogadores */}
-                                            <div><label className="editor-field-label">Posição</label>
-                                                <select value={player.position} onChange={e => handlePlayerChange(player.id, 'position', e.target.value as PlayerPosition)} className="editor-input">
-                                                    <option value="GOL">GOL</option>
-                                                    <option value="ZAG">ZAG</option>
-                                                    <option value="LAT">LAT</option>
-                                                    <option value="VOL">VOL</option>
-                                                    <option value="MEI">MEI</option>
-                                                    <option value="ATA">ATA</option>
-                                                </select>
-                                            </div>
-                                            <div><label className="editor-field-label">Salário</label><input type="number" value={player.salary} onChange={e => handlePlayerChange(player.id, 'salary', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Contrato</label><input type="number" value={player.contract} onChange={e => handlePlayerChange(player.id, 'contract', e.target.value)} className="editor-input"/></div>
-                                            <div><label className="editor-field-label">Valor</label><input type="number" value={player.value} onChange={e => handlePlayerChange(player.id, 'value', e.target.value)} className="editor-input"/></div>
-                                            {/* Pode adicionar mais campos como goals, assists, etc., mas lembre-se que eles são redefinidos */}
-                                        </div>
-                                    </details>
+                                   <details key={player.id} className="editor-player-item">
+                                       <summary className="editor-player-summary">{player.name} ({player.teamName}) - OVR: {player.overall}</summary>
+                                       <div className="editor-player-fields-grid">
+                                           <div><label className="editor-field-label">Nome</label><input type="text" value={player.name} onChange={e => handlePlayerChange(player.id, 'name', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Foto (URL)</label><input type="text" value={player.photoUrl} onChange={e => handlePlayerChange(player.id, 'photoUrl', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Idade</label><input type="number" value={player.age} onChange={e => handlePlayerChange(player.id, 'age', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Overall</label><input type="number" value={player.overall} onChange={e => handlePlayerChange(player.id, 'overall', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Potencial</label><input type="number" value={player.potential} onChange={e => handlePlayerChange(player.id, 'potential', e.target.value)} className="editor-input"/></div>
+                                       </div>
+                                   </details>
                                 ))}
-                            </div>
-                        </details>
-                        <details className="editor-details">
-                            <summary>Constantes do Jogo</summary>
-                             <div className="editor-details-content-grid constants-grid">
-                                 {Object.keys(editableConstants).map(key => (
-                                    <div key={key} className="editor-constant-input-group">
-                                        <label className="editor-constant-label">{key.replace(/_/g, ' ')}</label>
-                                        <input type="number" value={editableConstants[key as keyof GameConstantsType]} onChange={e => handleConstantChange(key as keyof GameConstantsType, e.target.value)} className="editor-constant-input" step={key.includes('CHANCE') ? 0.01 : 1} />
-                                    </div>
-                                 ))}
                              </div>
-                        </details>
+                         </details>
+                         <details className="editor-details"><summary>Constantes do Jogo</summary>
+                             <div className="editor-details-content-grid constants-grid">
+                                {Object.keys(editableConstants).map(key => (
+                                   <div key={key} className="editor-constant-input-group">
+                                       <label className="editor-constant-label">{key.replace(/_/g, ' ')}</label>
+                                       <input type="number" value={editableConstants[key as keyof GameConstantsType]} onChange={e => handleConstantChange(key as keyof GameConstantsType, e.target.value)} className="editor-constant-input" step={key.includes('CHANCE') ? 0.01 : 1} />
+                                   </div>
+                                ))}
+                             </div>
+                         </details>
                         <div className="editor-publish-section">
                             <button onClick={() => setPublishModalOpen(true)} className="publish-patch-button">
                                 <Send size={18}/><span>Publicar Patch</span>
@@ -1325,28 +1642,6 @@ const EditorScreen = () => {
                 )}
             </div>
 
-            {/* NOVO MODAL PARA ADICIONAR TIME */}
-            <Modal isOpen={addTeamModalOpen} onClose={() => setAddTeamModalOpen(false)} maxWidth="max-w-md">
-                <div className="p-6">
-                    <h3 className="text-xl font-bold mb-4">Adicionar Novo Time</h3>
-                    <div className="space-y-4">
-                        <div className="publish-modal-input-group">
-                            <label htmlFor="newTeamName" className="publish-modal-label">Nome do Time</label>
-                            <input id="newTeamName" type="text" value={newTeamName} onChange={e => setNewTeamName(e.target.value)} className="publish-modal-input" placeholder="Nome do time"/>
-                        </div>
-                        <div className="publish-modal-input-group">
-                            <label htmlFor="newTeamLogoUrl" className="publish-modal-label">URL do Logo (Opcional)</label>
-                            <input id="newTeamLogoUrl" type="text" value={newTeamLogoUrl} onChange={e => setNewTeamLogoUrl(e.target.value)} className="publish-modal-input" placeholder="http://exemplo.com/logo.png"/>
-                        </div>
-                    </div>
-                    <div className="publish-modal-actions">
-                        <button onClick={() => setAddTeamModalOpen(false)} className="publish-modal-cancel-btn">Cancelar</button>
-                        <button onClick={handleAddNewTeam} className="publish-modal-confirm-btn" disabled={!newTeamName.trim()}>Adicionar Time</button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* Modal de Publicar Patch (já existente) */}
             <Modal isOpen={publishModalOpen} onClose={() => setPublishModalOpen(false)} maxWidth="max-w-md">
                 <div className="p-6">
                     <h3 className="text-xl font-bold mb-4">Publicar Patch</h3>
@@ -1376,17 +1671,21 @@ const EditorScreen = () => {
 // --- SEÇÃO 7: COMPONENTE PRINCIPAL ---
 // =================================================================================
 
-// Provedor de Autenticação com Supabase
 const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
     // Monitora o estado de autenticação do Supabase
     useEffect(() => {
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log("Supabase Auth State Change Event:", event, "Session:", session);
             if (session) {
+                // Se há uma sessão, define o utilizador atual
                 setCurrentUser({ id: session.user.id, email: session.user.email || 'N/A' });
+                console.log("User set:", session.user.id, session.user.email);
             } else {
+                // Se não há sessão, limpa o utilizador atual
                 setCurrentUser(null);
+                console.log("User logged out or no session.");
             }
         });
 
@@ -1414,25 +1713,47 @@ const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
     )
 }
 
-// Wrapper do Jogo: Gerencia o estado global e a navegação entre telas
 const GameWrapper = () => {
     const [gameState, dispatch] = useReducer(gameReducer, getInitialState());
-    const { currentUser } = useAuth();
+    const { currentUser, login } = useAuth(); // Adicionado 'login' para usar no redirecionamento pós-login
     const [activeScreen, setActiveScreen] = useState('Painel');
 
+    // NOVO useEffect para lidar com o redirecionamento OAuth e carregar o jogo
     useEffect(() => {
-        // Ao iniciar, tenta carregar patches da comunidade do backend
-        const loadPatches = async () => {
+        const handleOAuthRedirect = async () => {
+            // Tenta obter a sessão do Supabase após um possível redirecionamento OAuth
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (session && currentUser === null) { // Se há uma sessão e o usuário ainda não está no contexto
+                console.log("GameWrapper: OAuth redirect detected, session found. Setting user.");
+                login({ id: session.user.id, email: session.user.email || 'N/A' });
+                // Limpa o hash da URL para uma URL mais limpa
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Carrega patches e jogo salvo APÓS a autenticação ser estabelecida
             try {
                 const patches = await apiService.getCommunityPatches();
                 dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
-            } catch (error) {
-                console.error('Erro ao carregar patches na inicialização:', error);
-                // Opcional: mostrar uma notificação de erro ao utilizador
+
+                if (session && gameState.status === 'main-menu') {
+                    console.log("GameWrapper: User logged in (or just logged in via OAuth), attempting to load saved game...");
+                    const savedGame = await apiService.loadGame(session.user.id);
+                    if (savedGame) {
+                        console.log("GameWrapper: Saved game found, dispatching LOAD_GAME.");
+                        dispatch({ type: 'LOAD_GAME', payload: savedGame });
+                    } else {
+                        console.log("GameWrapper: No saved game found for this user. Staying on main menu.");
+                    }
+                }
+            } catch (loadError) {
+                console.error('GameWrapper: Erro ao carregar dados iniciais ou jogo do utilizador:', loadError);
+                dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro de Carregamento', message: 'Não foi possível carregar dados iniciais ou jogo salvo.' } });
             }
         };
-        loadPatches();
-    }, []);
+
+        handleOAuthRedirect();
+    }, [currentUser, gameState.status, dispatch, login]); // Dependências
 
     const { simulateWeek } = useGameLogic(gameState, dispatch);
 
@@ -1468,6 +1789,7 @@ const GameWrapper = () => {
     const contextValue: GameContextType = {
         state: gameState, dispatch, simulateWeek, handleMakeOffer,
         handleAcceptIncomingOffer, handleRejectIncomingOffer, handleListForSale,
+        apiService: apiService, // Passa apiService via contexto
     };
 
     // Renderiza o menu principal ou o jogo, dependendo do status
@@ -1482,7 +1804,6 @@ const GameWrapper = () => {
         'Class.': <StandingsScreen />,
         'Mercado': <MarketScreen />,
         'Táticas': <TacticsScreen />,
-        // A tela de Editor só é visível se o usuário estiver logado
         ...(currentUser && {'Editor': <EditorScreen />})
     };
 
@@ -1513,8 +1834,8 @@ const GameWrapper = () => {
                         })}
                          <div className="nav-simulate-button-container">
                              <button onClick={simulateWeek} disabled={gameState.isSimulating} className="nav-simulate-button">
-                                 {gameState.isSimulating ? <LoaderCircle size={20} className="animate-spin" /> : <PlayCircle size={20} />}
-                                 <span>{gameState.isSimulating ? 'A Simular...' : 'Avançar Semana'}</span>
+                                {gameState.isSimulating ? <LoaderCircle size={20} className="animate-spin" /> : <PlayCircle size={20} />}
+                                <span>{gameState.isSimulating ? 'A Simular...' : 'Avançar Semana'}</span>
                              </button>
                          </div>
                     </div>
