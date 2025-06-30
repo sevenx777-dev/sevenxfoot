@@ -8,6 +8,9 @@ import {
     BarChart, Crosshair, Shirt, Zap, PlusCircle, LucideIcon, LoaderCircle, Wrench, Upload, Send
 } from 'lucide-react';
 
+// Importe o arquivo CSS
+import './styles.css';
+
 
 // =================================================================================
 // --- SEÇÃO 1: CONSTANTES E TIPOS ---
@@ -203,17 +206,17 @@ const generateSchedule = (teams: Team[]): Match[] => {
 };
 const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 const getMoraleDescription = (morale: number) => {
-    if (morale >= 90) return { text: "Excelente", color: 'text-green-500' };
-    if (morale >= 75) return { text: "Bom", color: 'text-green-500' };
-    if (morale >= 60) return { text: "Médio", color: 'text-amber-500' };
-    if (morale >= 40) return { text: "Baixo", color: 'text-red-500' };
-    return { text: "Crítico", color: 'text-red-500' };
+    if (morale >= 90) return { text: "Excelente", colorClass: 'text-green' };
+    if (morale >= 75) return { text: "Bom", colorClass: 'text-green' };
+    if (morale >= 60) return { text: "Médio", colorClass: 'text-amber' };
+    if (morale >= 40) return { text: "Baixo", colorClass: 'text-red' };
+    return { text: "Crítico", colorClass: 'text-red' };
 };
-const getEnergyColor = (energy: number) => energy >= 80 ? 'bg-green-500' : energy >= 50 ? 'bg-amber-500' : 'bg-red-500';
+const getEnergyColor = (energy: number) => energy >= 80 ? 'energy-green' : energy >= 50 ? 'energy-amber' : 'energy-red';
 const getPositionColor = (position: number) => {
-    if (position <= 1) return { bg: 'bg-amber-100', border: 'border-amber-400', text: 'text-amber-600' };
-    if (position <= 4) return { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-600' };
-    return { bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-600' };
+    if (position <= 1) return { bg: 'bg-amber', border: 'border-amber', text: 'text-amber' };
+    if (position <= 4) return { bg: 'bg-green', border: 'border-green', text: 'text-green' };
+    return { bg: 'bg-gray', border: 'border-gray', text: 'text-gray' };
 };
 
 // =================================================================================
@@ -223,9 +226,9 @@ const getInitialState = (): GameState => ({
     status: 'main-menu', managerName: '', season: 2025, week: 1, isSimulating: false,
     club: { id: 0, name: '', money: 15000000, reputation: 75, morale: 80, formation: '4-4-2' },
     leaguePlayers: [], standings: [], matchResult: null, messages: [], notification: null, schedule: [],
-    database: { 
+    database: {
         teams: JSON.parse(JSON.stringify(initialTeamsDB)),
-        constants: JSON.parse(JSON.stringify(initialGameConstants)) 
+        constants: JSON.parse(JSON.stringify(initialGameConstants))
     },
     transferOffers: [], transferMarketPlayers: [],
     communityPatches: [],
@@ -522,7 +525,7 @@ const ImageWithFallback: FC<{ src?: string; fallback: React.ReactNode; className
     useEffect(() => {
         setError(false);
     }, [src]);
-    if (!src || error) { return <div className={`${className} flex items-center justify-center bg-gray-200`}>{fallback}</div>; }
+    if (!src || error) { return <div className={`${className} image-fallback-container`}>{fallback}</div>; }
     return <img src={src} onError={() => setError(true)} className={className} alt="" />;
 };
 
@@ -535,7 +538,7 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
 
     const [managerName, setManagerName] = useState('');
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0].id);
-    
+
     const handleAuthAction = async () => {
         if(isRegistering) {
             const success = await (window as any).dbService.registerUser(email, password);
@@ -555,7 +558,7 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
             }
         }
     };
-    
+
     const handleLoadGame = async () => {
         if(!currentUser) return;
         const savedGame = await (window as any).dbService.loadGame(currentUser.id);
@@ -569,36 +572,36 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
     const handleSubmitNewGame = () => { if (managerName.trim()) onStartGame(managerName, selectedTeamId); };
     return (
         <>
-            <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-                <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
-                    <h1 className="text-4xl font-bold text-center mb-2">Football Manager</h1>
-                    <div className="text-center mb-8 h-6">
+            <div className="main-menu-container">
+                <div className="main-menu-card">
+                    <h1 className="main-menu-title">Football Manager</h1>
+                    <div className="main-menu-auth-status">
                         {currentUser ? (
-                            <div className="flex items-center justify-center gap-4">
+                            <div className="main-menu-auth-signed-in">
                                 <p className="text-gray-300">Bem-vindo, {currentUser.email}!</p>
-                                <button onClick={logout} className="text-indigo-400 hover:text-indigo-300 font-semibold">Logout</button>
+                                <button onClick={logout} className="main-menu-auth-logout-btn">Logout</button>
                             </div>
                         ) : (
-                             <button onClick={() => { setIsRegistering(false); setShowLogin(true); }} className="text-indigo-400 hover:text-indigo-300 font-semibold">Login para Salvar/Carregar</button>
+                             <button onClick={() => { setIsRegistering(false); setShowLogin(true); }} className="main-menu-auth-logout-btn">Login para Salvar/Carregar</button>
                         )}
                     </div>
-                    
+
                     <div className="space-y-4">
-                        <p className="text-center text-gray-400 border-b border-gray-700 pb-2">Novo Jogo</p>
-                        <input type="text" placeholder="O seu nome de treinador" value={managerName} onChange={(e) => setManagerName(e.target.value)} className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                        <div className="relative">
-                            <select value={selectedTeamId} onChange={(e) => setSelectedTeamId(Number(e.target.value))} className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <p className="main-menu-new-game-section text-center text-gray-400">Novo Jogo</p>
+                        <input type="text" placeholder="O seu nome de treinador" value={managerName} onChange={(e) => setManagerName(e.target.value)} className="main-menu-input light-bg" />
+                        <div className="main-menu-input-group">
+                            <select value={selectedTeamId} onChange={(e) => setSelectedTeamId(Number(e.target.value))} className="main-menu-input light-bg">
                                 {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
                             </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                            <div className="main-menu-select-arrow">
                                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
                             </div>
                         </div>
-                        <button onClick={handleSubmitNewGame} disabled={!managerName.trim()} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+                        <button onClick={handleSubmitNewGame} disabled={!managerName.trim()} className="main-menu-button main-menu-start-btn">
                             <PlayCircle size={20} />
                             <span>Iniciar Carreira</span>
                         </button>
-                        <button onClick={handleLoadGame} disabled={!currentUser} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+                        <button onClick={handleLoadGame} disabled={!currentUser} className="main-menu-button main-menu-load-btn">
                             <Upload size={20} />
                             <span>Carregar Jogo</span>
                         </button>
@@ -607,17 +610,17 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
             </div>
             <Modal isOpen={showLogin} onClose={() => setShowLogin(false)} maxWidth="max-w-sm">
                 <div className="p-6">
-                    <div className="flex border-b mb-4">
-                        <button onClick={() => setIsRegistering(false)} className={`flex-1 py-2 font-semibold ${!isRegistering ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>Login</button>
-                        <button onClick={() => setIsRegistering(true)} className={`flex-1 py-2 font-semibold ${isRegistering ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>Registar</button>
+                    <div className="login-modal-header">
+                        <button onClick={() => setIsRegistering(false)} className={`login-modal-tab-button ${!isRegistering ? 'active' : ''}`}>Login</button>
+                        <button onClick={() => setIsRegistering(true)} className={`login-modal-tab-button ${isRegistering ? 'active' : ''}`}>Registar</button>
                     </div>
                     <div className="space-y-4">
-                        <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg" />
-                        <input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg" />
+                        <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="login-modal-input" />
+                        <input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} className="login-modal-input" />
                     </div>
-                     <div className="flex justify-end gap-3 mt-6">
-                        <button onClick={() => setShowLogin(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold">Cancelar</button>
-                        <button onClick={handleAuthAction} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold">{isRegistering ? 'Registar' : 'Entrar'}</button>
+                     <div className="login-modal-actions">
+                        <button onClick={() => setShowLogin(false)} className="login-modal-cancel-btn">Cancelar</button>
+                        <button onClick={handleAuthAction} className="login-modal-submit-btn">{isRegistering ? 'Registar' : 'Entrar'}</button>
                     </div>
                 </div>
             </Modal>
@@ -630,7 +633,7 @@ const Header = () => {
     const { currentUser } = useAuth();
     const currentTeam = useMemo(() => state.standings.find(t => t.id === state.club.id), [state.standings, state.club.id]);
     const totalWeeks = (state.database.teams.length - 1) * 2;
-    
+
     const saveGame = async () => {
         if (!currentUser) {
             alert("Precisa de fazer login para salvar o jogo.");
@@ -646,29 +649,29 @@ const Header = () => {
     }
 
     return (
-        <header className="bg-white shadow-md p-3 sm:p-4">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    <ImageWithFallback src={currentTeam?.logoUrl} fallback={<Shield size={24} className="text-gray-400" />} className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full" />
-                    <div className="min-w-0">
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">{state.club.name}</h2>
-                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500">
+        <header className="header">
+            <div className="header-content">
+                <div className="header-team-info">
+                    <ImageWithFallback src={currentTeam?.logoUrl} fallback={<Shield size={24} className="text-gray-400" />} className="header-team-logo" />
+                    <div>
+                        <h2 className="header-club-name">{state.club.name}</h2>
+                        <div className="header-manager-info">
                             <User size={14} />
                             <span>{state.managerName}</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="hidden sm:block text-right">
+                <div className="header-right-section">
+                    <div className="header-week-progress">
                         <p className="text-sm font-medium text-gray-600">Semana {state.week} / {totalWeeks}</p>
-                        <div className="w-24 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-indigo-500" style={{ width: `${(state.week / totalWeeks) * 100}%` }}></div>
+                        <div className="header-week-progress-bar">
+                            <div className="header-week-progress-fill" style={{ width: `${(state.week / totalWeeks) * 100}%` }}></div>
                         </div>
                     </div>
                     {currentUser && (
-                         <button onClick={saveGame} className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-green-600 transition-colors">
+                         <button onClick={saveGame} className="header-save-button">
                             <Save size={16} />
-                            <span className="hidden sm:inline">Salvar</span>
+                            <span>Salvar</span>
                         </button>
                     )}
                 </div>
@@ -680,8 +683,8 @@ const Header = () => {
 const Modal: FC<{ children: React.ReactNode; isOpen: boolean; onClose: () => void; maxWidth?: string }> = ({ children, isOpen, onClose, maxWidth = 'max-w-lg' }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth}`} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className={`modal-content ${maxWidth}`} onClick={e => e.stopPropagation()}>
                 {children}
             </div>
         </div>
@@ -692,32 +695,32 @@ const MatchResultModal: FC<{ result: GameState['matchResult'] | null; onClose: (
     if (!result || !result.show) return null;
     const outcome = result.homeScore > result.awayScore ? 'win' : result.homeScore < result.awayScore ? 'loss' : 'draw';
     const stylesByOutcome = {
-        win: { bg: 'bg-green-500', icon: <Star size={32} />, text: 'Vitória!' },
-        loss: { bg: 'bg-red-500', icon: <XCircle size={32} />, text: 'Derrota' },
-        draw: { bg: 'bg-amber-500', icon: <Shield size={32} />, text: 'Empate' }
+        win: { bg: 'bg-green', icon: <Star size={32} />, text: 'Vitória!' },
+        loss: { bg: 'bg-red', icon: <XCircle size={32} />, text: 'Derrota' },
+        draw: { bg: 'bg-amber', icon: <Shield size={32} />, text: 'Empate' }
     };
     const { bg, icon, text } = stylesByOutcome[outcome];
 
     return (
         <Modal isOpen={result.show} onClose={onClose}>
-            <div className={`p-5 ${bg} text-white rounded-t-2xl flex justify-between items-center`}>
+            <div className={`match-modal-header ${bg}`}>
                 <h3 className="text-2xl font-bold">{text}</h3>
                 {icon}
             </div>
-            <div className="p-6 space-y-4">
-                <p className="text-center text-gray-500">Resultado Final</p>
-                <div className="flex justify-around items-center">
-                    <div className="text-center space-y-2 w-1/3">
-                        <ImageWithFallback src={result.homeTeam.logoUrl} fallback={<Shield size={32} />} className="w-16 h-16 mx-auto object-contain" />
+            <div className="match-modal-body space-y-4">
+                <p className="match-modal-score-label">Resultado Final</p>
+                <div className="match-modal-teams-container">
+                    <div className="match-modal-team-info space-y-2">
+                        <ImageWithFallback src={result.homeTeam.logoUrl} fallback={<Shield size={32} />} className="match-modal-team-logo" />
                         <p className="font-semibold text-gray-800">{result.homeTeam.name}</p>
                     </div>
-                    <p className={`text-4xl font-bold ${bg} text-white px-4 py-2 rounded-lg`}>{result.homeScore} - {result.awayScore}</p>
-                    <div className="text-center space-y-2 w-1/3">
-                        <ImageWithFallback src={result.awayTeam.logoUrl} fallback={<Shield size={32} />} className="w-16 h-16 mx-auto object-contain" />
+                    <p className={`match-modal-score ${bg}`}>{result.homeScore} - {result.awayScore}</p>
+                    <div className="match-modal-team-info space-y-2">
+                        <ImageWithFallback src={result.awayTeam.logoUrl} fallback={<Shield size={32} />} className="match-modal-team-logo" />
                         <p className="font-semibold text-gray-800">{result.awayTeam.name}</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="w-full mt-4 px-4 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">Continuar</button>
+                <button onClick={onClose} className="match-modal-continue-btn">Continuar</button>
             </div>
         </Modal>
     );
@@ -736,16 +739,16 @@ const NotificationModal: FC<{ notification: NotificationPayload | null; onClose:
     if (!notification || !notification.show) return null;
 
     return (
-        <div className="fixed top-5 right-5 bg-white shadow-lg rounded-lg p-4 w-full max-w-sm z-50 animate-pulse">
-            <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-500 flex items-center justify-center">
+        <div className="notification-modal animate-pulse">
+            <div className="notification-content">
+                <div className="notification-icon-container">
                     <Mail size={14} className="text-white"/>
                 </div>
-                <div className="flex-1">
-                    <p className="font-bold text-gray-800">{notification.title}</p>
-                    <p className="text-sm text-gray-600">{notification.message}</p>
+                <div className="notification-text-content">
+                    <p className="notification-title">{notification.title}</p>
+                    <p className="notification-message">{notification.message}</p>
                 </div>
-                <button onClick={onClose}><XCircle size={20} className="text-gray-400 hover:text-gray-600"/></button>
+                <button onClick={onClose} className="notification-close-btn"><XCircle size={20}/></button>
             </div>
         </div>
     );
@@ -755,8 +758,8 @@ const NotificationModal: FC<{ notification: NotificationPayload | null; onClose:
 const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ player, inTransferMarket = false }) => {
     const { state, handleListForSale, handleAcceptIncomingOffer, handleRejectIncomingOffer, handleMakeOffer } = useGame();
     const isUsersPlayer = player.teamId === state.club.id;
-    const incomingOffer = useMemo(() => state.transferOffers.find(o => o.isIncoming && o.playerId === player.id && o.status === 'pending'), [state.transferOffers, player.id]);
-    
+    const incomingOffer = useMemo(() => state.transferOffers.find(o => o.isIncoming && o.status === 'pending' && o.playerId === player.id), [state.transferOffers, player.id]);
+
     const [offerModalVisible, setOfferModalVisible] = useState(false);
     const [offerAmount, setOfferAmount] = useState('');
 
@@ -769,45 +772,45 @@ const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ playe
         handleMakeOffer(player.id, player.name, Number(offerAmount));
         setOfferModalVisible(false);
     }
-    
+
     return (
         <>
-            <div className="bg-white rounded-lg shadow p-4 space-y-3 border-l-4 border-gray-200">
-                <div className="flex items-center gap-4">
-                    <ImageWithFallback src={player.photoUrl} fallback={<User size={32} className="text-gray-400" />} className="w-16 h-16 rounded-full object-cover" />
-                    <div className="flex-1">
-                        <p className="font-bold text-lg text-gray-800">{player.name}</p>
-                        <p className="text-sm text-gray-500">{player.position} | {player.age} anos</p>
+            <div className="player-card">
+                <div className="player-card-header">
+                    <ImageWithFallback src={player.photoUrl} fallback={<User size={32} className="text-gray-400" />} className="player-card-photo" />
+                    <div className="player-card-info">
+                        <p className="player-card-name">{player.name}</p>
+                        <p className="player-card-details">{player.position} | {player.age} anos</p>
                     </div>
-                    <div className="text-center">
-                        <p className="text-3xl font-bold text-indigo-600">{player.overall}</p>
-                        <div className="w-16 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden"><div className={`${getEnergyColor(player.energy)} h-full`} style={{width: `${player.energy}%`}}></div></div>
+                    <div className="player-card-overall-section">
+                        <p className="player-card-overall">{player.overall}</p>
+                        <div className="player-card-energy-bar-bg"><div className={`${getEnergyColor(player.energy)} player-card-energy-bar-fill`} style={{width: `${player.energy}%`}}></div></div>
                     </div>
                 </div>
-                <div className="flex justify-between items-end pt-3 border-t border-gray-100">
-                    <div className="text-sm text-gray-600 space-y-1">
+                <div className="player-card-footer">
+                    <div className="player-card-stats">
                        <p>Valor: <span className="font-bold text-gray-800">{formatCurrency(player.value)}</span></p>
                        <p>Contrato: <span className="font-bold text-gray-800">{player.contract}</span></p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="player-card-actions">
                         {isUsersPlayer && !incomingOffer && (
-                            <button onClick={() => handleListForSale(player.id, !player.isForSale)} className={`px-3 py-1.5 text-xs font-semibold text-white rounded-md transition-colors ${player.isForSale ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-500 hover:bg-blue-600'}`}>
+                            <button onClick={() => handleListForSale(player.id, !player.isForSale)} className={`player-card-action-btn ${player.isForSale ? 'retire' : 'sell'}`}>
                                 {player.isForSale ? 'Retirar' : 'Vender'}
                             </button>
                         )}
                         {isUsersPlayer && incomingOffer && (
                             <>
-                                <button onClick={() => handleAcceptIncomingOffer(player.id)} className="px-3 py-1.5 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 rounded-md transition-colors">Aceitar</button>
-                                <button onClick={() => handleRejectIncomingOffer(player.id)} className="px-3 py-1.5 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors">Rejeitar</button>
+                                <button onClick={() => handleAcceptIncomingOffer(player.id)} className="player-card-action-btn accept">Aceitar</button>
+                                <button onClick={() => handleRejectIncomingOffer(player.id)} className="player-card-action-btn reject">Rejeitar</button>
                             </>
                         )}
                         {inTransferMarket && (
-                             <button onClick={openOfferModal} className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-500 hover:bg-indigo-600 rounded-md transition-colors">Ofertar</button>
+                             <button onClick={openOfferModal} className="player-card-action-btn offer">Ofertar</button>
                         )}
                     </div>
                 </div>
                  {incomingOffer && isUsersPlayer && (
-                    <div className="text-center bg-green-50 text-green-700 p-2 rounded-md mt-2 text-sm">
+                    <div className="player-card-incoming-offer">
                         Oferta de <strong>{formatCurrency(incomingOffer.amount)}</strong> por <strong>{incomingOffer.offeringTeamName}</strong>
                     </div>
                 )}
@@ -817,10 +820,10 @@ const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ playe
                     <h3 className="text-xl font-bold mb-4">Fazer Oferta por {player.name}</h3>
                     <p className="text-gray-600 mb-2">Valor de mercado: {formatCurrency(player.value)}</p>
                     <p className="text-gray-600 mb-4">Seu dinheiro: {formatCurrency(state.club.money)}</p>
-                    <input type="number" value={offerAmount} onChange={e => setOfferAmount(e.target.value)} className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg mb-4" />
-                    <div className="flex justify-end gap-3">
-                        <button onClick={() => setOfferModalVisible(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold">Cancelar</button>
-                        <button onClick={submitOffer} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold" disabled={Number(offerAmount) > state.club.money || Number(offerAmount) <= 0}>Confirmar</button>
+                    <input type="number" value={offerAmount} onChange={e => setOfferAmount(e.target.value)} className="offer-modal-input" />
+                    <div className="offer-modal-actions">
+                        <button onClick={() => setOfferModalVisible(false)} className="offer-modal-cancel-btn">Cancelar</button>
+                        <button onClick={submitOffer} className="offer-modal-confirm-btn" disabled={Number(offerAmount) > state.club.money || Number(offerAmount) <= 0}>Confirmar</button>
                     </div>
                 </div>
             </Modal>
@@ -842,57 +845,57 @@ const DashboardScreen = () => {
     const morale = getMoraleDescription(state.club.morale);
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 bg-white rounded-lg shadow p-6">
-                 <h2 className="text-xl font-bold text-gray-800 mb-4">Próximo Jogo</h2>
+        <div className="dashboard-grid">
+            <div className="dashboard-card">
+                 <h2 className="dashboard-card-title">Próximo Jogo</h2>
                  {playerTeam && nextOpponent ? (
-                    <div className="flex justify-around items-center text-center">
-                        <div className="w-1/3 space-y-2">
-                           <ImageWithFallback src={playerTeam.logoUrl} fallback={<Shield size={32} />} className="w-16 h-16 mx-auto object-contain" />
-                           <p className="font-semibold text-gray-800">{playerTeam.name}</p>
-                           <p className="text-xs text-gray-500">(Casa)</p>
+                    <div className="next-match-info text-center">
+                        <div className="next-match-team-section space-y-2">
+                           <ImageWithFallback src={playerTeam.logoUrl} fallback={<Shield size={32} />} className="next-match-team-logo" />
+                           <p className="next-match-team-name">{playerTeam.name}</p>
+                           <p className="next-match-team-label">(Casa)</p>
                         </div>
-                        <p className="text-2xl font-bold text-gray-400">VS</p>
-                        <div className="w-1/3 space-y-2">
-                           <ImageWithFallback src={nextOpponent.logoUrl} fallback={<Shield size={32} />} className="w-16 h-16 mx-auto object-contain" />
-                           <p className="font-semibold text-gray-800">{nextOpponent.name}</p>
-                           <p className="text-xs text-gray-500">(Fora)</p>
+                        <p className="next-match-vs">VS</p>
+                        <div className="next-match-team-section space-y-2">
+                           <ImageWithFallback src={nextOpponent.logoUrl} fallback={<Shield size={32} />} className="next-match-team-logo" />
+                           <p className="next-match-team-name">{nextOpponent.name}</p>
+                           <p className="next-match-team-label">(Fora)</p>
                         </div>
                     </div>
                  ) : (
-                    <div className="text-center py-10 text-gray-500">
-                        <Calendar size={48} className="mx-auto" />
-                        <p className="mt-4 font-semibold">Fim de temporada!</p>
+                    <div className="dashboard-no-game">
+                        <Calendar size={48} className="icon" />
+                        <p className="font-semibold">Fim de temporada!</p>
                     </div>
                 )}
             </div>
-            <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 border-l-4 border-green-500">
-                    <DollarSign size={32} className="text-green-500" />
+            <div className="dashboard-metrics-grid">
+                <div className="metric-card border-green">
+                    <DollarSign size={32} className="metric-icon" />
                     <div>
-                        <p className="text-sm text-gray-500">Orçamento</p>
-                        <p className="text-xl font-bold text-gray-800" >{formatCurrency(state.club.money)}</p>
+                        <p className="metric-label">Orçamento</p>
+                        <p className="metric-value" >{formatCurrency(state.club.money)}</p>
                     </div>
                 </div>
-                 <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 border-l-4 border-blue-500">
-                    <Trophy size={32} className="text-blue-500" />
+                 <div className="metric-card border-blue">
+                    <Trophy size={32} className="metric-icon" />
                     <div>
-                        <p className="text-sm text-gray-500">Posição</p>
-                        <p className="text-xl font-bold text-gray-800">{pTPos > 0 ? `${pTPos}º` : 'N/A'}</p>
+                        <p className="metric-label">Posição</p>
+                        <p className="metric-value">{pTPos > 0 ? `${pTPos}º` : 'N/A'}</p>
                     </div>
                 </div>
-                 <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 border-l-4 border-amber-500">
-                    <TrendingUp size={32} className="text-amber-500" />
+                 <div className="metric-card border-amber">
+                    <TrendingUp size={32} className="metric-icon" />
                     <div>
-                        <p className="text-sm text-gray-500">Moral</p>
-                        <p className={`text-xl font-bold ${morale.color}`}>{morale.text}</p>
+                        <p className="metric-label">Moral</p>
+                        <p className={`metric-value ${morale.colorClass}`}>{morale.text}</p>
                     </div>
                 </div>
-                 <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 border-l-4 border-purple-500">
-                    <Target size={32} className="text-purple-500" />
+                 <div className="metric-card border-purple">
+                    <Target size={32} className="metric-icon" />
                     <div>
-                        <p className="text-sm text-gray-500">Formação</p>
-                        <p className="text-xl font-bold text-gray-800">{state.club.formation}</p>
+                        <p className="metric-label">Formação</p>
+                        <p className="metric-value">{state.club.formation}</p>
                     </div>
                 </div>
             </div>
@@ -905,12 +908,12 @@ const PlayersScreen = () => {
     const { state } = useGame();
     const clubPlayers = useMemo(() => state.leaguePlayers.filter(p => p.teamId === state.club.id).sort((a, b) => b.overall - a.overall), [state.leaguePlayers, state.club.id]);
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="players-grid">
             {clubPlayers.length > 0 ? clubPlayers.map(p => <PlayerCard key={p.id} player={p} />)
             : (
-                <div className="md:col-span-2 xl:col-span-3 text-center py-10 text-gray-500">
-                    <Users size={48} className="mx-auto" />
-                    <p className="mt-4 font-semibold">Sem Jogadores no Plantel</p>
+                <div className="players-no-players">
+                    <Users size={48} className="icon" />
+                    <p className="font-semibold">Sem Jogadores no Plantel</p>
                     <p className="text-sm">Contrate jogadores no mercado!</p>
                 </div>
             )}
@@ -922,14 +925,14 @@ const MarketScreen = () => {
     const { state } = useGame();
     const availablePlayers = useMemo(() => state.transferMarketPlayers.sort((a,b) => b.overall - a.overall), [state.transferMarketPlayers]);
     return(
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">Mercado de Transferências</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="market-section">
+            <h2 className="market-title">Mercado de Transferências</h2>
+            <div className="market-players-grid">
                 {availablePlayers.length > 0 ? availablePlayers.map(p => <PlayerCard key={p.id} player={p} inTransferMarket={true} />)
                 : (
-                    <div className="md:col-span-2 xl:col-span-3 text-center py-10 text-gray-500">
-                        <Briefcase size={48} className="mx-auto" />
-                        <p className="mt-4 font-semibold">Mercado Vazio</p>
+                    <div className="market-no-players">
+                        <Briefcase size={48} className="icon" />
+                        <p className="font-semibold">Mercado Vazio</p>
                     </div>
                 )}
             </div>
@@ -940,34 +943,34 @@ const MarketScreen = () => {
 const StandingsScreen = () => {
     const { state } = useGame();
     return(
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+        <div className="standings-container">
+            <table className="standings-table">
+                <thead>
                     <tr>
-                        <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos</th>
-                        <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clube</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">P</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">J</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">V</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">E</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">D</th>
-                        <th className="px-2 sm:px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">SG</th>
+                        <th className="px-2">Pos</th>
+                        <th className="px-2">Clube</th>
+                        <th className="px-2">P</th>
+                        <th className="px-2">J</th>
+                        <th className="px-2">V</th>
+                        <th className="px-2">E</th>
+                        <th className="px-2">D</th>
+                        <th className="px-2">SG</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                     {state.standings.map((team, index) => {
                         const colors = getPositionColor(index + 1);
                         const isPlayerTeam = team.id === state.club.id;
                         return (
-                            <tr key={team.id} className={isPlayerTeam ? 'bg-indigo-50' : ''}>
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap"><div className={`w-6 h-6 rounded-md flex items-center justify-center font-bold ${colors.bg} ${colors.border} ${colors.text}`}>{index + 1}</div></td>
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap"><div className="flex items-center gap-3"><img src={team.logoUrl} alt={team.name} className="w-6 h-6"/><span className="font-medium text-gray-800">{team.name}</span></div></td>
-                                <td className="px-2 sm:px-3 py-4 text-center font-bold text-gray-800">{team.points}</td>
-                                <td className="px-2 sm:px-3 py-4 text-center text-gray-600">{team.played}</td>
-                                <td className="px-2 sm:px-3 py-4 text-center text-gray-600">{team.wins}</td>
-                                <td className="px-2 sm:px-3 py-4 text-center text-gray-600">{team.draws}</td>
-                                <td className="px-2 sm:px-3 py-4 text-center text-gray-600">{team.losses}</td>
-                                <td className="px-2 sm:px-3 py-4 text-center text-gray-600">{team.gd}</td>
+                            <tr key={team.id} className={isPlayerTeam ? 'player-team-row' : ''}>
+                                <td><div className={`standings-pos-circle ${colors.bg} ${colors.border} ${colors.text}`}>{index + 1}</div></td>
+                                <td><div className="standings-team-cell"><img src={team.logoUrl} alt={team.name} className="standings-team-logo"/><span className="standings-team-name">{team.name}</span></div></td>
+                                <td className="standings-points">{team.points}</td>
+                                <td className="standings-stat">{team.played}</td>
+                                <td className="standings-stat">{team.wins}</td>
+                                <td className="standings-stat">{team.draws}</td>
+                                <td className="standings-stat">{team.losses}</td>
+                                <td className="standings-stat">{team.gd}</td>
                             </tr>
                         )
                     })}
@@ -981,12 +984,12 @@ const TacticsScreen = () => {
     const { state, dispatch } = useGame();
     const formations: Formation[] = ['4-4-2', '4-3-3', '5-3-2'];
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Táticas</h2>
-            <p className="text-gray-600 mb-6">Escolha a formação que a sua equipa usará nas partidas.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="tactics-container">
+            <h2 className="tactics-title">Táticas</h2>
+            <p className="tactics-description">Escolha a formação que a sua equipa usará nas partidas.</p>
+            <div className="formation-grid">
                 {formations.map(f => (
-                    <button key={f} onClick={() => dispatch({type: 'SET_FORMATION', payload: f})} className={`p-6 rounded-lg text-2xl font-bold border-2 transition-colors ${state.club.formation === f ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-100 text-gray-700 border-gray-200 hover:border-indigo-400'}`}>
+                    <button key={f} onClick={() => dispatch({type: 'SET_FORMATION', payload: f})} className={`formation-button ${state.club.formation === f ? 'active' : ''}`}>
                         {f}
                     </button>
                 ))}
@@ -998,7 +1001,7 @@ const TacticsScreen = () => {
 const EditorScreen = () => {
     const { state, dispatch } = useGame();
     const [activeTab, setActiveTab] = useState('Community');
-    
+
     const [publishModalOpen, setPublishModalOpen] = useState(false);
     const [authorName, setAuthorName] = useState('');
     const [patchVersion, setPatchVersion] = useState('1.0');
@@ -1006,7 +1009,7 @@ const EditorScreen = () => {
     const [editableTeams, setEditableTeams] = useState([...state.database.teams]);
     const [editablePlayers, setEditablePlayers] = useState([...state.leaguePlayers]);
     const [editableConstants, setEditableConstants] = useState({...state.database.constants});
-    
+
     useEffect(() => {
         setEditableTeams(JSON.parse(JSON.stringify(state.database.teams)));
         setEditablePlayers(JSON.parse(JSON.stringify(state.leaguePlayers)));
@@ -1024,7 +1027,7 @@ const EditorScreen = () => {
             players: editablePlayers,
             constants: editableConstants,
         };
-        
+
         const success = await (window as any).dbService.publishPatch(authorName, patchVersion, patchData);
 
         if(success) {
@@ -1034,12 +1037,12 @@ const EditorScreen = () => {
         } else {
             dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro', message: `Falha ao publicar o patch.` } });
         }
-        
+
         setPublishModalOpen(false);
         setAuthorName('');
         setPatchVersion('1.0');
     };
-    
+
     const handleApplyCommunityPatch = (patch: PublishedPatch) => {
         dispatch({ type: 'APPLY_PATCH', payload: patch.data });
         dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Patch Aplicado!', message: `O patch de ${patch.author} (v${patch.version}) foi aplicado.` } });
@@ -1048,7 +1051,7 @@ const EditorScreen = () => {
     const handleTeamDataChange = (teamId: number, field: 'name' | 'logoUrl', value: string) => {
         setEditableTeams(currentTeams => currentTeams.map(t => t.id === teamId ? {...t, [field]: value} : t));
     }
-    
+
     const handlePlayerChange = (playerId: number, field: keyof Player, value: string | number) => {
         setEditablePlayers(currentPlayers => currentPlayers.map(p => {
             if (p.id === playerId) {
@@ -1066,29 +1069,29 @@ const EditorScreen = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-800">Editor de Patches</h1>
-            
-            <div className="flex border-b border-gray-200">
-                <button onClick={() => setActiveTab('Community')} className={`px-4 py-2 font-semibold ${activeTab === 'Community' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>Comunidade</button>
-                <button onClick={() => setActiveTab('Creator')} className={`px-4 py-2 font-semibold ${activeTab === 'Creator' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>Criar Patch</button>
+        <div className="editor-container space-y-6">
+            <h1 className="editor-title">Editor de Patches</h1>
+
+            <div className="editor-tabs">
+                <button onClick={() => setActiveTab('Community')} className={`editor-tab-button ${activeTab === 'Community' ? 'active' : ''}`}>Comunidade</button>
+                <button onClick={() => setActiveTab('Creator')} className={`editor-tab-button ${activeTab === 'Creator' ? 'active' : ''}`}>Criar Patch</button>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="editor-content-card">
                 {activeTab === 'Community' && (
-                     <div className="space-y-4">
-                         <h3 className="text-lg font-semibold">Navegar por Patches da Comunidade</h3>
+                     <div className="community-patches-section space-y-4">
+                         <h3 className="community-patches-title">Navegar por Patches da Comunidade</h3>
                          {state.communityPatches.length === 0 ? (
-                            <p className="text-gray-500">Nenhum patch foi publicado ainda. Seja o primeiro a criar um na aba 'Criar Patch'!</p>
+                            <p className="no-patches-message">Nenhum patch foi publicado ainda. Seja o primeiro a criar um na aba 'Criar Patch'!</p>
                          ) : (
-                            <ul className="space-y-3">
+                            <ul className="patch-list space-y-3">
                                 {state.communityPatches.map(patch => (
-                                    <li key={patch.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                                    <li key={patch.id} className="patch-item">
                                         <div>
-                                            <p className="font-bold">Versão {patch.version}</p>
-                                            <p className="text-sm text-gray-600">por {patch.author}</p>
+                                            <p className="patch-version">Versão {patch.version}</p>
+                                            <p className="patch-author">por {patch.author}</p>
                                         </div>
-                                        <button onClick={() => handleApplyCommunityPatch(patch)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                        <button onClick={() => handleApplyCommunityPatch(patch)} className="apply-patch-button">
                                             <Upload size={16}/><span>Aplicar</span>
                                         </button>
                                     </li>
@@ -1098,70 +1101,70 @@ const EditorScreen = () => {
                      </div>
                 )}
                 {activeTab === 'Creator' && (
-                    <div className="space-y-6">
-                        <details className="space-y-4 bg-gray-50 p-4 rounded-lg"><summary className="text-lg font-semibold cursor-pointer">Equipas</summary>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div className="creator-section space-y-6">
+                        <details className="editor-details"><summary>Equipas</summary>
+                            <div className="editor-details-content-grid teams-grid">
                                 {editableTeams.map(team => (
-                                    <div key={team.id} className="space-y-1">
-                                        <div className="flex items-center gap-2"><ImageWithFallback src={team.logoUrl} fallback={<Shield size={20}/>} className="w-6 h-6"/><span>{team.name}</span></div>
-                                        <input type="text" placeholder="Nome da Equipa" value={team.name} onChange={e => handleTeamDataChange(team.id, 'name', e.target.value)} className="w-full text-sm px-3 py-1.5 bg-white border border-gray-300 rounded-lg"/>
-                                        <input type="text" placeholder="URL do Logo" value={team.logoUrl} onChange={e => handleTeamDataChange(team.id, 'logoUrl', e.target.value)} className="w-full text-sm px-3 py-1.5 bg-white border border-gray-300 rounded-lg"/>
+                                    <div key={team.id} className="editor-field-group">
+                                        <div className="editor-team-input-group"><ImageWithFallback src={team.logoUrl} fallback={<Shield size={20}/>} className="editor-team-logo"/><span>{team.name}</span></div>
+                                        <input type="text" placeholder="Nome da Equipa" value={team.name} onChange={e => handleTeamDataChange(team.id, 'name', e.target.value)} className="editor-input"/>
+                                        <input type="text" placeholder="URL do Logo" value={team.logoUrl} onChange={e => handleTeamDataChange(team.id, 'logoUrl', e.target.value)} className="editor-input"/>
                                     </div>
                                 ))}
                             </div>
                         </details>
-                         <details className="space-y-4 bg-gray-50 p-4 rounded-lg"><summary className="text-lg font-semibold cursor-pointer">Jogadores</summary>
-                             <div className="space-y-2 max-h-96 overflow-y-auto pr-2 mt-2">
+                         <details className="editor-details"><summary>Jogadores</summary>
+                             <div className="editor-players-list">
                                 {editablePlayers.map(player => (
-                                   <details key={player.id} className="bg-white p-2 rounded-lg border">
-                                       <summary className="font-semibold cursor-pointer">{player.name} ({player.teamName}) - OVR: {player.overall}</summary>
-                                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                                           <div><label className="text-xs text-gray-500">Nome</label><input type="text" value={player.name} onChange={e => handlePlayerChange(player.id, 'name', e.target.value)} className="w-full p-1 border rounded"/></div>
-                                           <div><label className="text-xs text-gray-500">Foto (URL)</label><input type="text" value={player.photoUrl} onChange={e => handlePlayerChange(player.id, 'photoUrl', e.target.value)} className="w-full p-1 border rounded"/></div>
-                                           <div><label className="text-xs text-gray-500">Idade</label><input type="number" value={player.age} onChange={e => handlePlayerChange(player.id, 'age', e.target.value)} className="w-full p-1 border rounded"/></div>
-                                           <div><label className="text-xs text-gray-500">Overall</label><input type="number" value={player.overall} onChange={e => handlePlayerChange(player.id, 'overall', e.target.value)} className="w-full p-1 border rounded"/></div>
-                                           <div><label className="text-xs text-gray-500">Potencial</label><input type="number" value={player.potential} onChange={e => handlePlayerChange(player.id, 'potential', e.target.value)} className="w-full p-1 border rounded"/></div>
+                                   <details key={player.id} className="editor-player-item">
+                                       <summary className="editor-player-summary">{player.name} ({player.teamName}) - OVR: {player.overall}</summary>
+                                       <div className="editor-player-fields-grid">
+                                           <div><label className="editor-field-label">Nome</label><input type="text" value={player.name} onChange={e => handlePlayerChange(player.id, 'name', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Foto (URL)</label><input type="text" value={player.photoUrl} onChange={e => handlePlayerChange(player.id, 'photoUrl', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Idade</label><input type="number" value={player.age} onChange={e => handlePlayerChange(player.id, 'age', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Overall</label><input type="number" value={player.overall} onChange={e => handlePlayerChange(player.id, 'overall', e.target.value)} className="editor-input"/></div>
+                                           <div><label className="editor-field-label">Potencial</label><input type="number" value={player.potential} onChange={e => handlePlayerChange(player.id, 'potential', e.target.value)} className="editor-input"/></div>
                                        </div>
                                    </details>
                                 ))}
                              </div>
                          </details>
-                         <details className="space-y-4 bg-gray-50 p-4 rounded-lg"><summary className="text-lg font-semibold cursor-pointer">Constantes do Jogo</summary>
-                             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 mt-2">
+                         <details className="editor-details"><summary>Constantes do Jogo</summary>
+                             <div className="editor-details-content-grid constants-grid">
                                 {Object.keys(editableConstants).map(key => (
-                                   <div key={key}>
-                                       <label className="text-sm font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
-                                       <input type="number" value={editableConstants[key as keyof GameConstantsType]} onChange={e => handleConstantChange(key as keyof GameConstantsType, e.target.value)} className="w-full p-2 bg-white border border-gray-300 rounded-lg mt-1" step={key.includes('CHANCE') ? 0.01 : 1} />
+                                   <div key={key} className="editor-constant-input-group">
+                                       <label className="editor-constant-label">{key.replace(/_/g, ' ')}</label>
+                                       <input type="number" value={editableConstants[key as keyof GameConstantsType]} onChange={e => handleConstantChange(key as keyof GameConstantsType, e.target.value)} className="editor-constant-input" step={key.includes('CHANCE') ? 0.01 : 1} />
                                    </div>
                                 ))}
                              </div>
                          </details>
-                        <div className="pt-4 mt-4 border-t">
-                            <button onClick={() => setPublishModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        <div className="editor-publish-section">
+                            <button onClick={() => setPublishModalOpen(true)} className="publish-patch-button">
                                 <Send size={18}/><span>Publicar Patch</span>
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-            
+
             <Modal isOpen={publishModalOpen} onClose={() => setPublishModalOpen(false)} maxWidth="max-w-md">
                 <div className="p-6">
                     <h3 className="text-xl font-bold mb-4">Publicar Patch</h3>
                     <p className="text-sm text-gray-600 mb-4">As suas alterações em Equipas, Jogadores e Constantes serão publicadas como um único patch.</p>
                     <div className="space-y-4">
-                        <div>
-                            <label htmlFor="authorName" className="text-sm font-medium text-gray-700">Seu Nome de Autor</label>
-                            <input id="authorName" type="text" value={authorName} onChange={e => setAuthorName(e.target.value)} className="w-full mt-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg"/>
+                        <div className="publish-modal-input-group">
+                            <label htmlFor="authorName" className="publish-modal-label">Seu Nome de Autor</label>
+                            <input id="authorName" type="text" value={authorName} onChange={e => setAuthorName(e.target.value)} className="publish-modal-input"/>
                         </div>
-                        <div>
-                            <label htmlFor="patchVersion" className="text-sm font-medium text-gray-700">Versão do Patch</label>
-                            <input id="patchVersion" type="text" value={patchVersion} onChange={e => setPatchVersion(e.target.value)} className="w-full mt-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg"/>
+                        <div className="publish-modal-input-group">
+                            <label htmlFor="patchVersion" className="publish-modal-label">Versão do Patch</label>
+                            <input id="patchVersion" type="text" value={patchVersion} onChange={e => setPatchVersion(e.target.value)} className="publish-modal-input"/>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 mt-6">
-                        <button onClick={() => setPublishModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold">Cancelar</button>
-                        <button onClick={handlePublishPatch} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold">Publicar</button>
+                    <div className="publish-modal-actions">
+                        <button onClick={() => setPublishModalOpen(false)} className="publish-modal-cancel-btn">Cancelar</button>
+                        <button onClick={handlePublishPatch} className="publish-modal-confirm-btn">Publicar</button>
                     </div>
                 </div>
             </Modal>
@@ -1189,7 +1192,7 @@ const GameWrapper = () => {
     const [gameState, dispatch] = useReducer(gameReducer, getInitialState());
     const { currentUser } = useAuth();
     const [activeScreen, setActiveScreen] = useState('Painel');
-    
+
     useEffect(() => {
         const loadPatches = async () => {
             if((window as any).dbService) {
@@ -1235,7 +1238,7 @@ const GameWrapper = () => {
         state: gameState, dispatch, simulateWeek, handleMakeOffer,
         handleAcceptIncomingOffer, handleRejectIncomingOffer, handleListForSale,
     };
-    
+
     if (gameState.status === 'main-menu') {
         return <MainMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} teams={gameState.database.teams} />;
     }
@@ -1252,37 +1255,37 @@ const GameWrapper = () => {
     const screenIcons: { [key: string]: LucideIcon } = {
         'Painel': TrendingUp, 'Plantel': Users, 'Class.': Trophy, 'Mercado': DollarSign, 'Táticas': Target, 'Editor': Wrench
     };
-     
+
     return (
         <GameContext.Provider value={contextValue}>
-            <div className="bg-gray-100 min-h-screen flex flex-col">
+            <div className="game-layout">
                 <Header />
                 <main className="flex-grow p-4 sm:p-6">
                     <div className="max-w-7xl mx-auto">
                         {screens[activeScreen]}
                     </div>
                 </main>
-                <div className="w-full text-center p-4 sticky bottom-0 bg-gray-100/80 backdrop-blur-sm border-t border-gray-200 md:hidden">
-                    <button onClick={simulateWeek} disabled={gameState.isSimulating} className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors shadow-lg">
+                <div className="footer-nav bg-gray-100/80">
+                    <button onClick={simulateWeek} disabled={gameState.isSimulating} className="nav-simulate-button">
                         {gameState.isSimulating ? <LoaderCircle size={24} className="animate-spin" /> : <PlayCircle size={24} />}
                         <span>{gameState.isSimulating ? 'A Simular...' : 'Avançar Semana'}</span>
                     </button>
                 </div>
-                <nav className="bg-white shadow-t-lg sticky bottom-0 md:static">
-                    <div className="max-w-7xl mx-auto flex justify-around">
+                <nav className="footer-nav-bottom">
+                    <div className="footer-nav-inner">
                         {Object.keys(screens).map(name => {
                             const Icon = screenIcons[name];
                             return (
-                                <button key={name} onClick={() => setActiveScreen(name)} className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 sm:py-3 text-xs sm:text-sm font-medium border-t-4 transition-colors ${activeScreen === name ? 'text-indigo-600 border-indigo-600' : 'text-gray-500 border-transparent hover:text-indigo-500'}`}>
+                                <button key={name} onClick={() => setActiveScreen(name)} className={`nav-button ${activeScreen === name ? 'active' : ''}`}>
                                     <Icon size={22} />
                                     <span>{name}</span>
                                 </button>
                             );
                         })}
-                         <div className="hidden md:flex flex-1 items-center justify-center">
-                             <button onClick={simulateWeek} disabled={gameState.isSimulating} className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors shadow-lg">
+                         <div className="nav-simulate-button-container">
+                             <button onClick={simulateWeek} disabled={gameState.isSimulating} className="nav-simulate-button">
                                 {gameState.isSimulating ? <LoaderCircle size={20} className="animate-spin" /> : <PlayCircle size={20} />}
-                                <span className="hidden lg:inline">{gameState.isSimulating ? 'A Simular...' : 'Avançar Semana'}</span>
+                                <span>{gameState.isSimulating ? 'A Simular...' : 'Avançar Semana'}</span>
                              </button>
                          </div>
                     </div>
@@ -1340,7 +1343,7 @@ const App = () => {
                     },
                     // Simulação de hash - NÃO USAR EM PRODUÇÃO
                     hashPassword(password: string) { return password.split('').reverse().join(''); },
-                    
+
                     async registerUser(email: string, pass: string) {
                         try {
                             const password_hash = this.hashPassword(pass);
