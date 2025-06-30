@@ -10,6 +10,7 @@
   "web": "expo start --web",
   "lint": "expo lint",
   "build": "expo export --platform web"
+  "build": "[my-framework] build --output public"
 },
 
   "dependencies": {
