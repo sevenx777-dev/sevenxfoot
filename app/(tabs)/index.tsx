@@ -1,5 +1,6 @@
 import React, { useState, useReducer, useEffect, createContext, useContext, useMemo, FC } from 'react';
 import { useWindowDimensions } from 'react-native';
+import { createClient } from '@supabase/supabase-js'; // Importar o Supabase client
 
 // --- Ícones para a Web ---
 import {
@@ -11,6 +12,15 @@ import {
 // Importe o arquivo CSS
 import './styles.css';
 
+
+// =================================================================================
+// --- Configuração do Supabase ---
+// =================================================================================
+// Encontre estes valores no painel do seu projeto Supabase (Settings -> API)
+const supabaseUrl = 'https://iqzbuldbxhtkmbcmpisk.supabase.co'; // Ex: https://abcdefghijklm.supabase.co
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxemJ1bGRieGh0a21iY21waXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyOTQ3ODksImV4cCI6MjA2Njg3MDc4OX0.5rYcqgXI3zM2TRhWQy2EUwhiStOszv68Gk-lZ9ib51w'; // Ex: eyJhbGciOiJIUzI1NiI...
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // =================================================================================
 // --- SEÇÃO 1: CONSTANTES E TIPOS ---
@@ -129,7 +139,7 @@ type Action =
 // --- SEÇÃO 2: GAME & AUTH CONTEXT ---
 // =================================================================================
 type AuthUser = {
-    id: number;
+    id: string; // Supabase usa string para user.id
     email: string;
 };
 
@@ -329,7 +339,7 @@ const gameReducer = (state: GameState, action: Action): GameState => {
         }
         case 'PUBLISH_PATCH': {
             const newPatch: PublishedPatch = {
-                id: Date.now(),
+                id: Date.now(), // ID temporário, o backend geraria o ID real
                 ...action.payload,
             };
             return {
@@ -529,6 +539,102 @@ const ImageWithFallback: FC<{ src?: string; fallback: React.ReactNode; className
     return <img src={src} onError={() => setError(true)} className={className} alt="" />;
 };
 
+// Serviço de API para interagir com o Supabase
+const apiService = {
+    async registerUser(email: string, password: string) {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+            console.error('Erro no registo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Registo Supabase bem-sucedido:', data);
+        return true;
+    },
+
+    async loginUser(email: string, password: string) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            console.error('Erro no login Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Login Supabase bem-sucedido:', data);
+        return { id: data.user?.id || '', email: data.user?.email || '' };
+    },
+
+    async googleLogin() {
+        // Redireciona para o fluxo de autenticação do Google via Supabase
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin // Redireciona de volta para a URL atual do seu app
+            }
+        });
+        if (error) {
+            console.error('Erro ao iniciar login Google com Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        // O Supabase irá lidar com o redirecionamento e o callback.
+        // O login será detetado pelo onAuthStateChange no AuthProvider.
+        return null; // Não retorna o utilizador aqui, será via onAuthStateChange
+    },
+
+    async saveGame(userId: string, gameState: GameState) { // userId é string no Supabase
+        const { data, error } = await supabase
+            .from('saved_games')
+            .upsert({ user_id: userId, game_state: gameState }, { onConflict: 'user_id' }); // user_id é a chave primária
+
+        if (error) {
+            console.error('Erro ao salvar jogo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Jogo salvo com sucesso no Supabase:', data);
+        return true;
+    },
+
+    async loadGame(userId: string): Promise<GameState | null> { // userId é string no Supabase
+        const { data, error } = await supabase
+            .from('saved_games')
+            .select('game_state')
+            .eq('user_id', userId)
+            .single(); // Espera um único resultado
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 é "no rows found", que é ok
+            console.error('Erro ao carregar jogo Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Jogo carregado do Supabase:', data);
+        return data ? data.game_state : null;
+    },
+
+    async publishPatch(author: string, version: string, data: object) {
+        const { data: newPatch, error } = await supabase
+            .from('community_patches')
+            .insert({ author, version, data });
+
+        if (error) {
+            console.error('Erro ao publicar patch Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Patch publicado com sucesso no Supabase:', newPatch);
+        return true;
+    },
+
+    async getCommunityPatches(): Promise<PublishedPatch[]> {
+        const { data, error } = await supabase
+            .from('community_patches')
+            .select('*')
+            .order('created_at', { ascending: false }); // Ordena por data de criação
+
+        if (error) {
+            console.error('Erro ao obter patches da comunidade Supabase:', error.message);
+            throw new Error(error.message);
+        }
+        console.log('Patches da comunidade carregados do Supabase:', data);
+        return data as PublishedPatch[];
+    },
+};
+
+
 const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) => void; onLoadGame: (state: GameState) => void; teams: Team[] }> = ({ onStartGame, onLoadGame, teams }) => {
     const { currentUser, login, logout } = useAuth();
     const [showLogin, setShowLogin] = useState(false);
@@ -539,33 +645,56 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
     const [managerName, setManagerName] = useState('');
     const [selectedTeamId, setSelectedTeamId] = useState(teams[0].id);
 
+    // Efeito para lidar com o redirecionamento do Supabase Auth
+    useEffect(() => {
+        // Supabase lida com o redirecionamento e a sessão automaticamente
+        // Não precisamos de window.google.accounts.id.initialize aqui
+    }, []);
+
     const handleAuthAction = async () => {
-        if(isRegistering) {
-            const success = await (window as any).dbService.registerUser(email, password);
-            if (success) {
+        try {
+            if(isRegistering) {
+                await apiService.registerUser(email, password);
                 alert('Registo efetuado com sucesso! Por favor, faça login.');
                 setIsRegistering(false);
             } else {
-                alert('Erro ao registar. O e-mail pode já estar em uso.');
+                const user = await apiService.loginUser(email, password);
+                if (user) {
+                    login(user);
+                    setShowLogin(false);
+                } else {
+                    alert('E-mail ou senha inválidos.');
+                }
             }
-        } else {
-            const user = await (window as any).dbService.loginUser(email, password);
-            if (user) {
-                login(user);
-                setShowLogin(false);
-            } else {
-                alert('E-mail ou senha inválidos.');
-            }
+        } catch (error: any) {
+            alert(error.message);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            await apiService.googleLogin();
+            // O Supabase irá redirecionar ou abrir um popup.
+            // A sessão será detetada pelo onAuthStateChange no AuthProvider.
+        } catch (error: any) {
+            alert(error.message);
         }
     };
 
     const handleLoadGame = async () => {
-        if(!currentUser) return;
-        const savedGame = await (window as any).dbService.loadGame(currentUser.id);
-        if(savedGame) {
-            onLoadGame(savedGame);
-        } else {
-            alert("Nenhum jogo salvo encontrado para este utilizador.");
+        if(!currentUser) {
+            alert("Precisa de fazer login para carregar o jogo.");
+            return;
+        }
+        try {
+            const savedGame = await apiService.loadGame(currentUser.id);
+            if(savedGame) {
+                onLoadGame(savedGame);
+            } else {
+                alert("Nenhum jogo salvo encontrado para este utilizador.");
+            }
+        } catch (error: any) {
+            alert(error.message);
         }
     }
 
@@ -622,6 +751,14 @@ const MainMenu: FC<{ onStartGame: (managerName: string, selectedTeamId: number) 
                         <button onClick={() => setShowLogin(false)} className="login-modal-cancel-btn">Cancelar</button>
                         <button onClick={handleAuthAction} className="login-modal-submit-btn">{isRegistering ? 'Registar' : 'Entrar'}</button>
                     </div>
+                    <div className="google-signin-separator">
+                        <span>OU</span>
+                    </div>
+                    {/* Botão Google simples - Supabase lida com o fluxo */}
+                    <button onClick={handleGoogleLogin} className="google-login-button">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_de_Google_%282015%29.svg" alt="Google logo" className="google-logo"/>
+                        Entrar com Google
+                    </button>
                 </div>
             </Modal>
         </>
@@ -640,11 +777,15 @@ const Header = () => {
             return;
         }
         try {
-            await (window as any).dbService.saveGame(currentUser.id, state);
-            alert("Jogo salvo com sucesso!");
-        } catch (error) {
+            const success = await apiService.saveGame(currentUser.id, state);
+            if (success) {
+                alert("Jogo salvo com sucesso!");
+            } else {
+                alert("Erro ao salvar o jogo. Verifique a consola.");
+            }
+        } catch (error: any) {
             console.error("Failed to save game:", error);
-            alert("Erro ao salvar o jogo.");
+            alert(error.message);
         }
     }
 
@@ -852,20 +993,20 @@ const DashboardScreen = () => {
                     <div className="next-match-info text-center">
                         <div className="next-match-team-section space-y-2">
                            <ImageWithFallback src={playerTeam.logoUrl} fallback={<Shield size={32} />} className="next-match-team-logo" />
-                           <p className="next-match-team-name">{playerTeam.name}</p>
-                           <p className="next-match-team-label">(Casa)</p>
+                           <p className="font-semibold text-gray-800">{playerTeam.name}</p>
+                           <p className="text-xs text-gray-500">(Casa)</p>
                         </div>
-                        <p className="next-match-vs">VS</p>
+                        <p className="text-2xl font-bold text-gray-400">VS</p>
                         <div className="next-match-team-section space-y-2">
                            <ImageWithFallback src={nextOpponent.logoUrl} fallback={<Shield size={32} />} className="next-match-team-logo" />
-                           <p className="next-match-team-name">{nextOpponent.name}</p>
-                           <p className="next-match-team-label">(Fora)</p>
+                           <p className="font-semibold text-gray-800">{nextOpponent.name}</p>
+                           <p className="text-xs text-gray-500">(Fora)</p>
                         </div>
                     </div>
                  ) : (
                     <div className="dashboard-no-game">
                         <Calendar size={48} className="icon" />
-                        <p className="font-semibold">Fim de temporada!</p>
+                        <p className="mt-4 font-semibold">Fim de temporada!</p>
                     </div>
                 )}
             </div>
@@ -873,29 +1014,29 @@ const DashboardScreen = () => {
                 <div className="metric-card border-green">
                     <DollarSign size={32} className="metric-icon" />
                     <div>
-                        <p className="metric-label">Orçamento</p>
-                        <p className="metric-value" >{formatCurrency(state.club.money)}</p>
+                        <p className="text-sm text-gray-500">Orçamento</p>
+                        <p className="text-xl font-bold text-gray-800" >{formatCurrency(state.club.money)}</p>
                     </div>
                 </div>
                  <div className="metric-card border-blue">
                     <Trophy size={32} className="metric-icon" />
                     <div>
-                        <p className="metric-label">Posição</p>
-                        <p className="metric-value">{pTPos > 0 ? `${pTPos}º` : 'N/A'}</p>
+                        <p className="text-sm text-gray-500">Posição</p>
+                        <p className="text-xl font-bold text-gray-800">{pTPos > 0 ? `${pTPos}º` : 'N/A'}</p>
                     </div>
                 </div>
                  <div className="metric-card border-amber">
                     <TrendingUp size={32} className="metric-icon" />
                     <div>
-                        <p className="metric-label">Moral</p>
-                        <p className={`metric-value ${morale.colorClass}`}>{morale.text}</p>
+                        <p className="text-sm text-gray-500">Moral</p>
+                        <p className={`text-xl font-bold ${morale.colorClass}`}>{morale.text}</p>
                     </div>
                 </div>
                  <div className="metric-card border-purple">
                     <Target size={32} className="metric-icon" />
                     <div>
-                        <p className="metric-label">Formação</p>
-                        <p className="metric-value">{state.club.formation}</p>
+                        <p className="text-sm text-gray-500">Formação</p>
+                        <p className="text-xl font-bold text-gray-800">{state.club.formation}</p>
                     </div>
                 </div>
             </div>
@@ -913,7 +1054,7 @@ const PlayersScreen = () => {
             : (
                 <div className="players-no-players">
                     <Users size={48} className="icon" />
-                    <p className="font-semibold">Sem Jogadores no Plantel</p>
+                    <p className="mt-4 font-semibold">Sem Jogadores no Plantel</p>
                     <p className="text-sm">Contrate jogadores no mercado!</p>
                 </div>
             )}
@@ -932,7 +1073,7 @@ const MarketScreen = () => {
                 : (
                     <div className="market-no-players">
                         <Briefcase size={48} className="icon" />
-                        <p className="font-semibold">Mercado Vazio</p>
+                        <p className="mt-4 font-semibold">Mercado Vazio</p>
                     </div>
                 )}
             </div>
@@ -1028,14 +1169,17 @@ const EditorScreen = () => {
             constants: editableConstants,
         };
 
-        const success = await (window as any).dbService.publishPatch(authorName, patchVersion, patchData);
-
-        if(success) {
-            dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Sucesso', message: `Patch de ${authorName} (v${patchVersion}) foi publicado!` } });
-            const patches = await (window as any).dbService.getCommunityPatches();
-            dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
-        } else {
-            dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro', message: `Falha ao publicar o patch.` } });
+        try {
+            const success = await apiService.publishPatch(authorName, patchVersion, patchData);
+            if(success) {
+                dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Sucesso', message: `Patch de ${authorName} (v${patchVersion}) foi publicado!` } });
+                const patches = await apiService.getCommunityPatches();
+                dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
+            } else {
+                alert('Falha ao publicar o patch.');
+            }
+        } catch (error: any) {
+            alert(error.message);
         }
 
         setPublishModalOpen(false);
@@ -1179,8 +1323,36 @@ const EditorScreen = () => {
 
 const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-    const login = (user: AuthUser) => setCurrentUser(user);
-    const logout = () => setCurrentUser(null);
+
+    // Monitora o estado de autenticação do Supabase
+    useEffect(() => {
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // Se há uma sessão, define o utilizador atual
+                setCurrentUser({ id: session.user.id, email: session.user.email || 'N/A' });
+            } else {
+                // Se não há sessão, limpa o utilizador atual
+                setCurrentUser(null);
+            }
+        });
+
+        // Limpa o listener ao desmontar o componente
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
+    }, []);
+
+    const login = (user: AuthUser) => setCurrentUser(user); // Usado para login manual
+    const logout = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Erro ao fazer logout Supabase:', error.message);
+            alert('Erro ao fazer logout.');
+        } else {
+            setCurrentUser(null); // Limpa o utilizador no estado local
+        }
+    };
+
     return (
         <AuthContext.Provider value={{ currentUser, login, logout }}>
             {children}
@@ -1194,10 +1366,14 @@ const GameWrapper = () => {
     const [activeScreen, setActiveScreen] = useState('Painel');
 
     useEffect(() => {
+        // Ao iniciar, tenta carregar patches da comunidade do backend
         const loadPatches = async () => {
-            if((window as any).dbService) {
-                const patches = await (window as any).dbService.getCommunityPatches();
+            try {
+                const patches = await apiService.getCommunityPatches();
                 dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
+            } catch (error) {
+                console.error('Erro ao carregar patches na inicialização:', error);
+                // Opcional: mostrar uma notificação de erro ao utilizador
             }
         };
         loadPatches();
@@ -1298,117 +1474,6 @@ const GameWrapper = () => {
 }
 
 const App = () => {
-    // Adiciona o script do sql.js e inicializa o banco de dados
-    useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js';
-        script.onload = async () => {
-            try {
-                const SQL = await (window as any).initSqlJs({
-                    locateFile: (file: string) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
-                });
-                // Lógica de inicialização do DB
-                const dbService = {
-                    db: null as any,
-                    async init() {
-                        const savedDb = localStorage.getItem('fm_database');
-                        const dbData = savedDb ? this.base64ToUint8(savedDb) : null;
-                        this.db = new SQL.Database(dbData || undefined);
-                        this.createTables();
-                    },
-                    save() {
-                        const data = this.db.export();
-                        localStorage.setItem('fm_database', this.uint8ToBase64(data));
-                    },
-                    createTables() {
-                        this.db.exec(`
-                            CREATE TABLE IF NOT EXISTS users (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                email TEXT UNIQUE NOT NULL,
-                                password_hash TEXT NOT NULL
-                            );
-                            CREATE TABLE IF NOT EXISTS saved_games (
-                                user_id INTEGER PRIMARY KEY,
-                                game_state TEXT NOT NULL,
-                                FOREIGN KEY (user_id) REFERENCES users (id)
-                            );
-                            CREATE TABLE IF NOT EXISTS community_patches (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                author TEXT NOT NULL,
-                                version TEXT NOT NULL,
-                                data TEXT NOT NULL
-                            );
-                        `);
-                        this.save();
-                    },
-                    // Simulação de hash - NÃO USAR EM PRODUÇÃO
-                    hashPassword(password: string) { return password.split('').reverse().join(''); },
-
-                    async registerUser(email: string, pass: string) {
-                        try {
-                            const password_hash = this.hashPassword(pass);
-                            this.db.run('INSERT INTO users (email, password_hash) VALUES (?, ?)', [email, password_hash]);
-                            this.save();
-                            return true;
-                        } catch (e) {
-                            console.error("Registration error:", e);
-                            return false;
-                        }
-                    },
-                    async loginUser(email: string, pass: string) {
-                        const password_hash = this.hashPassword(pass);
-                        const stmt = this.db.prepare('SELECT id, email FROM users WHERE email = ? AND password_hash = ?');
-                        const result = stmt.getAsObject({':email': email, ':password_hash': password_hash});
-                        stmt.free();
-                        return result.id ? { id: result.id, email: result.email } : null;
-                    },
-                    async saveGame(userId: number, gameState: GameState) {
-                        const stateString = JSON.stringify(gameState);
-                        this.db.run('INSERT OR REPLACE INTO saved_games (user_id, game_state) VALUES (?, ?)', [userId, stateString]);
-                        this.save();
-                    },
-                    async loadGame(userId: number) {
-                        const stmt = this.db.prepare('SELECT game_state FROM saved_games WHERE user_id = ?');
-                        const result = stmt.getAsObject({':user_id': userId});
-                        stmt.free();
-                        return result.game_state ? JSON.parse(result.game_state) : null;
-                    },
-                    async publishPatch(author: string, version: string, data: object) {
-                        const dataString = JSON.stringify(data);
-                        this.db.run('INSERT INTO community_patches (author, version, data) VALUES (?, ?, ?)', [author, version, dataString]);
-                        this.save();
-                        return true;
-                    },
-                    async getCommunityPatches() {
-                        const res = this.db.exec("SELECT * FROM community_patches");
-                        if (res.length === 0) return [];
-                        return res[0].values.map((row: any) => ({
-                            id: row[0],
-                            author: row[1],
-                            version: row[2],
-                            data: JSON.parse(row[3])
-                        }));
-                    },
-                    uint8ToBase64(arr: Uint8Array) {
-                        return btoa(String.fromCharCode.apply(null, Array.from(arr)));
-                    },
-                    base64ToUint8(str: string) {
-                        return new Uint8Array(atob(str).split('').map(c => c.charCodeAt(0)));
-                    }
-                };
-                await dbService.init();
-                (window as any).dbService = dbService;
-            } catch (err) {
-                console.error("Failed to load sql.js:", err);
-            }
-        };
-        document.body.appendChild(script);
-
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, []);
-
     return (
         <AuthProvider>
             <GameWrapper />
