@@ -19,7 +19,7 @@ import './styles.css';
 // =================================================================================
 // Encontre estes valores no painel do seu projeto Supabase (Settings -> API)
 const supabaseUrl = 'https://iqzbuldbxhtkmbcmpisk.supabase.co'; // Ex: https://abcdefghijklm.supabase.co
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxemJ1bGRieGh0a21iY21waXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyOTQ3ODksImV4cCI6MjA2Njg3MDc4OX0.5rYcqgXI3zM2TRhWQy2EUwhiStOszv68Gk-lZ9ib51w'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxemJ1bGRieGh0a21iY21waXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyOTQ3ODksImV4cCI6MjA2Njg3MDc4OX0.5rYcqgXI3zM2TRhWQy2EUwhiStOszv68Gk-lZ9ib51w';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // =================================================================================
