@@ -1,24 +1,25 @@
-/* Variáveis CSS para cores e tamanhos comuns (baseado nas cores do Tailwind) */
+/* Variáveis CSS para cores e tamanhos comuns (ajustadas para tema escuro) */
 :root {
-    --color-gray-50: #f9fafb;
-    --color-gray-100: #f3f4f6;
-    --color-gray-200: #e5e7eb;
-    --color-gray-300: #d1d5db;
-    --color-gray-400: #9ca3af;
-    --color-gray-500: #6b7280;
-    --color-gray-600: #4b5563;
-    --color-gray-700: #374151;
-    --color-gray-800: #1f2937;
-    --color-gray-900: #111827;
+    --color-gray-50: #f9fafb; /* Não muito usado no tema escuro, mantido para referência */
+    --color-gray-100: #f3f4f6; /* Não muito usado no tema escuro, mantido para referência */
+    --color-gray-200: #e5e7eb; /* Usado para bordas claras em elementos claros */
+    --color-gray-300: #d1d5db; /* Usado para bordas e texto claro em elementos claros */
+    --color-gray-400: #9ca3af; /* Texto secundário */
+    --color-gray-500: #6b7280; /* Texto secundário */
+    --color-gray-600: #4b5563; /* Texto em elementos escuros */
+    --color-gray-700: #374151; /* Fundo de inputs em tema claro */
+    --color-gray-800: #1f2937; /* Fundo de cards em tema escuro */
+    --color-gray-900: #111827; /* Fundo principal escuro */
+    --color-black: #000000; /* Preto puro */
 
-    --color-indigo-50: #eef2ff;
-    --color-indigo-100: #e0e7ff;
+    --color-indigo-50: #eef2ff; /* Não muito usado no tema escuro */
+    --color-indigo-100: #e0e7ff; /* Não muito usado no tema escuro */
     --color-indigo-400: #818cf8;
     --color-indigo-500: #6366f1;
     --color-indigo-600: #4f46e5;
     --color-indigo-700: #4338ca;
 
-    --color-green-50: #f0fdf4;
+    --color-green-50: #f0fdf4; /* Fundo claro para mensagens de sucesso */
     --color-green-500: #22c55e;
     --color-green-600: #16a34a;
     --color-green-700: #047857;
@@ -26,7 +27,7 @@
     --color-red-500: #ef4444;
     --color-red-600: #dc2626;
 
-    --color-amber-100: #fef3c7;
+    --color-amber-100: #fef3c7; /* Fundo claro para alertas */
     --color-amber-400: #fbbf24;
     --color-amber-500: #f59e0b;
     --color-amber-600: #d97706;
@@ -36,7 +37,6 @@
     --color-blue-700: #1d4ed8;
 
     --color-purple-500: #a855f7;
-    --color-purple-600: #9333ea;
 
     --spacing-1: 0.25rem; /* 4px */
     --spacing-1-5: 0.375rem; /* 6px */
@@ -79,11 +79,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
     overflow-y: auto;
     overflow-x: hidden;
+    background-color: var(--color-black); /* Fundo do body preto */
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 /* Global Layouts */
 .game-layout {
-    background-color: var(--color-gray-100);
+    background-color: var(--color-black); /* Fundo principal do jogo preto */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -106,9 +108,9 @@ body {
 .px-6 { padding-left: var(--spacing-6); padding-right: var(--spacing-6); }
 
 /* Common Styles */
-.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15); } /* Sombras mais escuras */
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1); }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.15); }
 
 .rounded-lg { border-radius: var(--border-radius-lg); }
 .rounded-md { border-radius: var(--border-radius-md); }
@@ -119,11 +121,11 @@ body {
 .text-right { text-align: right; }
 
 .text-white { color: #fff; }
-.text-gray-300 { color: var(--color-gray-300); }
+.text-gray-300 { color: var(--color-gray-300); } /* Usado para texto mais claro em fundos escuros */
 .text-gray-400 { color: var(--color-gray-400); }
 .text-gray-500 { color: var(--color-gray-500); }
 .text-gray-600 { color: var(--color-gray-600); }
-.text-gray-800 { color: var(--color-gray-800); }
+.text-gray-800 { color: var(--color-gray-100); } /* Trocado para cinza muito claro em fundo escuro */
 .text-indigo-400 { color: var(--color-indigo-400); }
 .text-indigo-600 { color: var(--color-indigo-600); }
 .text-green-500 { color: var(--color-green-500); }
@@ -180,7 +182,7 @@ body {
 .w-24 { width: 6rem; } /* 96px */
 
 .h-full { height: 100%; }
-.h-1-5 { height: 0.375rem; /* 6px */ }
+.h-1-5 { height: 0.375rem; } /* 6px */
 .h-6 { height: var(--spacing-6); }
 .h-10 { height: var(--spacing-10); }
 .h-12 { height: var(--spacing-12); }
@@ -191,73 +193,75 @@ body {
 .object-cover { object-fit: cover; }
 .object-contain { object-fit: contain; }
 
-.border { border-width: 1px; border-color: var(--color-gray-200); }
+.border { border-width: 1px; border-color: var(--color-gray-700); } /* Bordas mais escuras */
 .border-l-4 { border-left-width: 4px; }
 .border-t { border-top-width: 1px; }
 .border-b { border-bottom-width: 1px; }
 .border-b-2 { border-bottom-width: 2px; }
-.border-gray-200 { border-color: var(--color-gray-200); }
-.border-gray-300 { border-color: var(--color-gray-300); }
-.border-gray-600 { border-color: var(--color-gray-600); }
-.border-gray-700 { border-color: var(--color-gray-700); }
+.border-gray-200 { border-color: var(--color-gray-700); } /* Ajustado para tema escuro */
+.border-gray-300 { border-color: var(--color-gray-600); } /* Ajustado para tema escuro */
+.border-gray-600 { border-color: var(--color-gray-500); } /* Ajustado para tema escuro */
+.border-gray-700 { border-color: var(--color-gray-600); } /* Ajustado para tema escuro */
 .border-indigo-600 { border-color: var(--color-indigo-600); }
 .border-green-400 { border-color: var(--color-green-400); }
 .border-amber-400 { border-color: var(--color-amber-400); }
 .border-transparent { border-color: transparent; }
 
-.bg-gray-50 { background-color: var(--color-gray-50); }
-.bg-gray-100 { background-color: var(--color-gray-100); }
-.bg-gray-200 { background-color: var(--color-gray-200); }
-.bg-gray-700 { background-color: var(--color-gray-700); }
-.bg-gray-800 { background-color: var(--color-gray-800); }
-.bg-gray-900 { background-color: var(--color-gray-900); }
-.bg-white { background-color: #fff; }
-.bg-indigo-50 { background-color: var(--color-indigo-50); }
+.bg-gray-50 { background-color: var(--color-gray-800); } /* Fundo claro para elementos em tema escuro */
+.bg-gray-100 { background-color: var(--color-gray-700); } /* Fundo de inputs em tema escuro */
+.bg-gray-200 { background-color: var(--color-gray-800); } /* Ajustado para tema escuro */
+.bg-gray-700 { background-color: var(--color-gray-800); } /* Fundo de inputs em tema escuro */
+.bg-gray-800 { background-color: var(--color-gray-900); } /* Fundo de cards em tema escuro */
+.bg-gray-900 { background-color: var(--color-black); } /* Fundo principal mais escuro */
+.bg-white { background-color: var(--color-gray-800); } /* Elementos brancos agora são cinza escuro */
+.bg-indigo-50 { background-color: rgba(var(--color-indigo-600-rgb), 0.1); } /* Fundo de linha selecionada mais sutil */
 .bg-indigo-500 { background-color: var(--color-indigo-500); }
 .bg-indigo-600 { background-color: var(--color-indigo-600); }
-.bg-green-50 { background-color: var(--color-green-50); }
+.bg-green-50 { background-color: rgba(var(--color-green-500-rgb), 0.1); } /* Fundo de notificação verde mais sutil */
 .bg-green-500 { background-color: var(--color-green-500); }
 .bg-green-600 { background-color: var(--color-green-600); }
 .bg-red-500 { background-color: var(--color-red-500); }
-.bg-amber-100 { background-color: var(--color-amber-100); }
+.bg-amber-100 { background-color: rgba(var(--color-amber-500-rgb), 0.1); } /* Fundo de alerta âmbar mais sutil */
 .bg-amber-500 { background-color: var(--color-amber-500); }
 .bg-blue-500 { background-color: var(--color-blue-500); }
 .bg-blue-600 { background-color: var(--color-blue-600); }
 
 /* Inputs and Buttons */
 input, select {
-    background-color: var(--color-gray-700);
-    border: 1px solid var(--color-gray-600);
+    background-color: var(--color-gray-700); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-600); /* Borda de input visível */
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-3) var(--spacing-4);
-    color: #fff;
+    color: #fff; /* Texto branco */
     outline: none;
 }
 input:focus, select:focus {
-    ring-width: 2px;
-    ring-color: var(--color-indigo-500);
+    box-shadow: 0 0 0 2px var(--color-indigo-500); /* Anel de foco */
+    border-color: var(--color-indigo-500);
 }
 select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22currentColor%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E');
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22currentColor%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%2001-1.414%200l-4-4a1%201%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1em;
 }
 
 input.light-bg, select.light-bg {
-    background-color: var(--color-gray-100);
-    border-color: var(--color-gray-300);
-    color: var(--color-gray-800);
+    background-color: var(--color-gray-800); /* Fundo de input claro agora é cinza escuro */
+    border-color: var(--color-gray-700); /* Borda mais escura */
+    color: #fff; /* Texto branco */
 }
 
 button {
     cursor: pointer;
+    border: none; /* Resetar borda padrão */
 }
 button:disabled {
-    background-color: var(--color-gray-500) !important;
+    background-color: var(--color-gray-600) !important; /* Desabilitado mais escuro */
+    color: var(--color-gray-400) !important; /* Texto desabilitado mais claro */
     cursor: not-allowed !important;
 }
 
@@ -269,19 +273,19 @@ button:disabled {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background-color: var(--color-gray-900);
-    color: var(--color-white);
+    background-color: var(--color-black); /* Fundo principal preto */
+    color: var(--color-white); /* Texto branco */
     padding: var(--spacing-4);
 }
 
 .main-menu-card {
     width: 100%;
     max-width: 28rem;
-    background-color: var(--color-gray-800);
+    background-color: var(--color-gray-900); /* Fundo do card mais escuro */
     border-radius: var(--border-radius-2xl);
     box-shadow: var(--shadow-lg);
     padding: var(--spacing-8);
-    border: 1px solid var(--color-gray-700);
+    border: 1px solid var(--color-gray-800); /* Borda mais escura */
 }
 
 .main-menu-title {
@@ -289,6 +293,7 @@ button:disabled {
     font-weight: var(--font-bold);
     text-align: center;
     margin-bottom: var(--spacing-2);
+    color: var(--color-white); /* Título branco */
 }
 
 .main-menu-auth-status {
@@ -307,13 +312,15 @@ button:disabled {
 .main-menu-auth-logout-btn {
     color: var(--color-indigo-400);
     font-weight: var(--font-semibold);
+    background: none; /* Botão transparente */
+    padding: 0; /* Remover padding padrão */
 }
 .main-menu-auth-logout-btn:hover {
     color: var(--color-indigo-300);
 }
 
 .main-menu-new-game-section {
-    border-bottom: 1px solid var(--color-gray-700);
+    border-bottom: 1px solid var(--color-gray-700); /* Linha divisória mais escura */
     padding-bottom: var(--spacing-2);
     margin-bottom: var(--spacing-4);
 }
@@ -366,7 +373,7 @@ button:disabled {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.8); /* Fundo do modal mais escuro */
     z-index: 50;
     display: flex;
     align-items: center;
@@ -375,10 +382,11 @@ button:disabled {
 }
 
 .modal-content {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do modal escuro */
     border-radius: var(--border-radius-2xl);
     box-shadow: var(--shadow-xl);
     width: 100%;
+    color: var(--color-white); /* Texto do modal branco */
 }
 .modal-content.max-w-sm { max-width: 24rem; /* 384px */ }
 .modal-content.max-w-md { max-width: 28rem; /* 448px */ }
@@ -388,7 +396,7 @@ button:disabled {
 /* Login Modal */
 .login-modal-header {
     display: flex;
-    border-bottom: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-700); /* Borda mais escura */
     margin-bottom: var(--spacing-4);
 }
 
@@ -397,11 +405,13 @@ button:disabled {
     padding-top: var(--spacing-2);
     padding-bottom: var(--spacing-2);
     font-weight: var(--font-semibold);
+    background: none; /* Transparente */
+    color: var(--color-gray-400); /* Texto padrão cinza */
 }
 
 .login-modal-tab-button.active {
-    color: var(--color-indigo-600);
-    border-bottom: 2px solid var(--color-indigo-600);
+    color: var(--color-indigo-400); /* Ativo mais claro */
+    border-bottom: 2px solid var(--color-indigo-400);
 }
 
 .login-modal-tab-button:not(.active) {
@@ -409,11 +419,12 @@ button:disabled {
 }
 
 .login-modal-input {
-    background-color: var(--color-gray-100);
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-800); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-700); /* Borda de input */
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-2) var(--spacing-4);
     width: 100%;
+    color: #fff; /* Texto branco */
 }
 
 .login-modal-actions {
@@ -424,8 +435,8 @@ button:disabled {
 }
 
 .login-modal-cancel-btn {
-    background-color: var(--color-gray-200);
-    color: var(--color-gray-800);
+    background-color: var(--color-gray-700); /* Fundo de botão cinza escuro */
+    color: var(--color-white); /* Texto branco */
     padding: var(--spacing-2) var(--spacing-4);
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
@@ -455,7 +466,7 @@ button:disabled {
     top: 50%;
     width: 40%; /* Ajuste conforme necessário */
     height: 1px;
-    background-color: var(--color-gray-300);
+    background-color: var(--color-gray-700); /* Linha divisória mais escura */
 }
 
 .google-signin-separator::before {
@@ -473,16 +484,16 @@ button:disabled {
     justify-content: center;
     gap: 0.75rem; /* 12px */
     padding: 0.75rem 1rem; /* 12px 16px */
-    background-color: #fff;
-    color: var(--color-gray-700);
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-800); /* Fundo do botão Google escuro */
+    color: var(--color-white); /* Texto branco */
+    border: 1px solid var(--color-gray-700); /* Borda mais escura */
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
     transition: background-color 0.15s ease-in-out;
 }
 
 .google-login-button:hover {
-    background-color: var(--color-gray-50);
+    background-color: var(--color-gray-700); /* Hover mais escuro */
 }
 
 .google-logo {
@@ -492,9 +503,10 @@ button:disabled {
 
 /* Header */
 .header {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do header escuro */
     box-shadow: var(--shadow-md);
     padding: var(--spacing-3);
+    color: var(--color-white); /* Texto do header branco */
 }
 @media (min-width: 640px) { /* sm breakpoint */
     .header { padding: var(--spacing-4); }
@@ -526,25 +538,23 @@ button:disabled {
     object-fit: contain;
     border-radius: var(--border-radius-full);
 }
-.image-fallback-container { /* Unificado com player-card-photo-fallback */
-    background-color: var(--color-gray-200);
+.header-team-logo-fallback {
+    width: var(--spacing-10);
+    height: var(--spacing-10);
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: var(--color-gray-700); /* Fallback logo escuro */
     border-radius: var(--border-radius-full);
 }
-.header-team-logo.image-fallback-container {
-    width: var(--spacing-10);
-    height: var(--spacing-10);
-}
 @media (min-width: 640px) {
-    .header-team-logo.image-fallback-container { width: var(--spacing-12); height: var(--spacing-12); }
+    .header-team-logo, .header-team-logo-fallback { width: var(--spacing-12); height: var(--spacing-12); }
 }
 
 .header-club-name {
     font-size: var(--font-size-lg);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Nome do clube branco */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -558,7 +568,7 @@ button:disabled {
     align-items: center;
     gap: var(--spacing-1-5);
     font-size: var(--font-size-xs);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Info do gerente cinza claro */
 }
 @media (min-width: 640px) {
     .header-manager-info { font-size: var(--font-size-sm); }
@@ -579,7 +589,7 @@ button:disabled {
 .header-week-progress-bar {
     width: var(--spacing-24);
     height: var(--spacing-1-5);
-    background-color: var(--color-gray-200);
+    background-color: var(--color-gray-700); /* Barra de progresso escura */
     border-radius: var(--border-radius-full);
     margin-top: var(--spacing-1);
     overflow: hidden;
@@ -597,7 +607,7 @@ button:disabled {
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-2) var(--spacing-3);
-    background-color: var(--color-green-500);
+    background-color: var(--color-green-600);
     color: #fff;
     font-size: var(--font-size-xs);
     font-weight: var(--font-semibold);
@@ -606,7 +616,7 @@ button:disabled {
     transition-duration: 150ms;
 }
 .header-save-button:hover {
-    background-color: var(--color-green-600);
+    background-color: var(--color-green-700);
 }
 @media (max-width: 639px) { /* hidden sm:inline */
     .header-save-button span { display: none; }
@@ -622,23 +632,26 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
 }
-.match-modal-header.bg-green { background-color: var(--color-green-500); }
-.match-modal-header.bg-red { background-color: var(--color-red-500); }
-.match-modal-header.bg-amber { background-color: var(--color-amber-500); }
+.match-modal-header.bg-green { background-color: var(--color-green-600); } /* Verde mais escuro */
+.match-modal-header.bg-red { background-color: var(--color-red-600); } /* Vermelho mais escuro */
+.match-modal-header.bg-amber { background-color: var(--color-amber-600); } /* Âmbar mais escuro */
 
 .match-modal-header h3 {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-bold);
+    color: var(--color-white); /* Título branco */
 }
 
 .match-modal-body {
     padding: var(--spacing-6);
     text-align: center;
+    background-color: var(--color-gray-900); /* Fundo do corpo do modal escuro */
+    color: var(--color-white); /* Texto do corpo do modal branco */
 }
 
 .match-modal-score-label {
     margin-bottom: var(--spacing-4);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Label cinza claro */
 }
 
 .match-modal-teams-container {
@@ -661,30 +674,6 @@ button:disabled {
     object-fit: contain;
 }
 
-.match-modal-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time */
-    width: var(--spacing-16);
-    height: var(--spacing-16);
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: var(--border-radius-full);
-}
-
-.match-modal-team-name {
-    font-weight: var(--font-semibold);
-    color: var(--color-gray-800);
-}
-
-.match-modal-team-label {
-    font-size: var(--font-size-xs);
-    color: var(--color-gray-500);
-}
-
-.match-modal-vs {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-bold);
-    color: var(--color-gray-400);
-}
-
 .match-modal-score {
     font-size: var(--font-size-4xl);
     font-weight: var(--font-bold);
@@ -692,9 +681,9 @@ button:disabled {
     padding: var(--spacing-2) var(--spacing-4);
     border-radius: var(--border-radius-lg);
 }
-.match-modal-score.bg-green { background-color: var(--color-green-500); }
-.match-modal-score.bg-red { background-color: var(--color-red-500); }
-.match-modal-score.bg-amber { background-color: var(--color-amber-500); }
+.match-modal-score.bg-green { background-color: var(--color-green-600); }
+.match-modal-score.bg-red { background-color: var(--color-red-600); }
+.match-modal-score.bg-amber { background-color: var(--color-amber-600); }
 
 .match-modal-continue-btn {
     width: 100%;
@@ -717,7 +706,7 @@ button:disabled {
     position: fixed;
     top: var(--spacing-5);
     right: var(--spacing-5);
-    background-color: #fff;
+    background-color: var(--color-gray-800); /* Fundo da notificação escuro */
     box-shadow: var(--shadow-lg);
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-4);
@@ -725,6 +714,7 @@ button:disabled {
     max-width: 24rem; /* max-w-sm */
     z-index: 50;
     animation: pulse 1.5s infinite;
+    border: 1px solid var(--color-gray-700); /* Borda para visibilidade */
 }
 
 .notification-content {
@@ -750,19 +740,21 @@ button:disabled {
 
 .notification-title {
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Título branco */
 }
 
 .notification-message {
     font-size: var(--font-size-sm);
-    color: var(--color-gray-600);
+    color: var(--color-gray-300); /* Mensagem cinza claro */
 }
 
 .notification-close-btn {
-    color: var(--color-gray-400);
+    color: var(--color-gray-500); /* Ícone de fechar cinza */
+    background: none;
+    padding: 0;
 }
 .notification-close-btn:hover {
-    color: var(--color-gray-600);
+    color: var(--color-gray-400);
 }
 
 @keyframes pulse {
@@ -773,12 +765,13 @@ button:disabled {
 
 /* Player Card */
 .player-card {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do card de jogador escuro */
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-4);
     margin-bottom: var(--spacing-3); /* space-y-3 equivalent */
-    border-left: 4px solid var(--color-gray-200);
+    border-left: 4px solid var(--color-gray-800); /* Borda esquerda mais escura */
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 .player-card-header {
@@ -793,12 +786,15 @@ button:disabled {
     border-radius: var(--border-radius-full);
     object-fit: cover;
 }
-.player-card-photo.image-fallback-container { /* Estilos de fallback para a foto do jogador */
+.player-card-photo-fallback {
     width: var(--spacing-16);
     height: var(--spacing-16);
     border-radius: var(--border-radius-full);
+    background-color: var(--color-gray-700); /* Fallback da foto escuro */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
 
 .player-card-info {
     flex: 1;
@@ -807,12 +803,12 @@ button:disabled {
 .player-card-name {
     font-weight: var(--font-bold);
     font-size: var(--font-size-lg);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Nome do jogador branco */
 }
 
 .player-card-details {
     font-size: var(--font-size-sm);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Detalhes cinza claro */
 }
 
 .player-card-overall-section {
@@ -822,13 +818,13 @@ button:disabled {
 .player-card-overall {
     font-size: var(--font-size-3xl);
     font-weight: var(--font-bold);
-    color: var(--color-indigo-600);
+    color: var(--color-indigo-400); /* Overall azul claro */
 }
 
 .player-card-energy-bar-bg {
     width: var(--spacing-16);
     height: var(--spacing-1-5);
-    background-color: var(--color-gray-200);
+    background-color: var(--color-gray-700); /* Barra de energia escura */
     border-radius: var(--border-radius-full);
     margin-top: var(--spacing-1);
     overflow: hidden;
@@ -847,17 +843,17 @@ button:disabled {
     justify-content: space-between;
     align-items: flex-end;
     padding-top: var(--spacing-3);
-    border-top: 1px solid var(--color-gray-100);
+    border-top: 1px solid var(--color-gray-800); /* Linha divisória mais escura */
 }
 
 .player-card-stats {
     font-size: var(--font-size-sm);
-    color: var(--color-gray-600);
+    color: var(--color-gray-300); /* Estatísticas cinza claro */
 }
 
 .player-card-stats span {
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Valores de estatísticas brancos */
 }
 
 .player-card-actions {
@@ -876,44 +872,44 @@ button:disabled {
 }
 
 .player-card-action-btn.sell {
-    background-color: var(--color-blue-500);
+    background-color: var(--color-blue-600);
 }
 .player-card-action-btn.sell:hover {
-    background-color: var(--color-blue-600);
+    background-color: var(--color-blue-700);
 }
 
 .player-card-action-btn.retire {
-    background-color: var(--color-gray-500);
+    background-color: var(--color-gray-600); /* Botão de retirar escuro */
 }
 .player-card-action-btn.retire:hover {
-    background-color: var(--color-gray-600);
+    background-color: var(--color-gray-700);
 }
 
 .player-card-action-btn.accept {
-    background-color: var(--color-green-500);
+    background-color: var(--color-green-600);
 }
 .player-card-action-btn.accept:hover {
-    background-color: var(--color-green-600);
+    background-color: var(--color-green-700);
 }
 
 .player-card-action-btn.reject {
-    background-color: var(--color-red-500);
+    background-color: var(--color-red-600);
 }
 .player-card-action-btn.reject:hover {
-    background-color: var(--color-red-600);
+    background-color: var(--color-red-700);
 }
 
 .player-card-action-btn.offer {
-    background-color: var(--color-indigo-500);
+    background-color: var(--color-indigo-600);
 }
 .player-card-action-btn.offer:hover {
-    background-color: var(--color-indigo-600);
+    background-color: var(--color-indigo-700);
 }
 
 .player-card-incoming-offer {
     text-align: center;
-    background-color: var(--color-green-50);
-    color: var(--color-green-700);
+    background-color: rgba(var(--color-green-500-rgb), 0.1); /* Fundo de oferta mais sutil */
+    color: var(--color-green-400); /* Texto verde mais claro */
     padding: var(--spacing-2);
     border-radius: var(--border-radius-md);
     margin-top: var(--spacing-2);
@@ -924,10 +920,11 @@ button:disabled {
 .offer-modal-input {
     width: 100%;
     padding: var(--spacing-2) var(--spacing-4);
-    background-color: var(--color-gray-100);
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-800); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-700); /* Borda de input */
     border-radius: var(--border-radius-lg);
     margin-bottom: var(--spacing-4);
+    color: var(--color-white); /* Texto branco */
 }
 
 .offer-modal-actions {
@@ -938,8 +935,8 @@ button:disabled {
 }
 
 .offer-modal-cancel-btn {
-    background-color: var(--color-gray-200);
-    color: var(--color-gray-800);
+    background-color: var(--color-gray-700); /* Botão de cancelar escuro */
+    color: var(--color-white);
     padding: var(--spacing-2) var(--spacing-4);
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
@@ -967,16 +964,17 @@ button:disabled {
 }
 
 .dashboard-card {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do card escuro */
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-6);
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 .dashboard-card-title {
     font-size: var(--font-size-xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Título branco */
     margin-bottom: var(--spacing-4);
 }
 
@@ -1000,35 +998,27 @@ button:disabled {
     object-fit: contain;
 }
 
-.next-match-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time no próximo jogo */
-    width: var(--spacing-16);
-    height: var(--spacing-16);
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: var(--border-radius-full);
-}
-
 .next-match-team-name {
     font-weight: var(--font-semibold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Nome do time branco */
 }
 
 .next-match-team-label {
     font-size: var(--font-size-xs);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Label cinza claro */
 }
 
 .next-match-vs {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-400);
+    color: var(--color-gray-500); /* VS cinza */
 }
 
 .dashboard-no-game {
     text-align: center;
     padding-top: var(--spacing-10);
     padding-bottom: var(--spacing-10);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Texto cinza claro */
 }
 .dashboard-no-game .icon { margin-left: auto; margin-right: auto; }
 .dashboard-no-game p { margin-top: var(--spacing-4); font-weight: var(--font-semibold); }
@@ -1044,7 +1034,7 @@ button:disabled {
 }
 
 .metric-card {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do card de métrica escuro */
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-4);
@@ -1052,6 +1042,7 @@ button:disabled {
     align-items: center;
     gap: var(--spacing-4);
     border-left-width: 4px;
+    color: var(--color-white); /* Texto padrão branco */
 }
 .metric-card.border-green { border-color: var(--color-green-500); }
 .metric-card.border-blue { border-color: var(--color-blue-500); }
@@ -1067,17 +1058,17 @@ button:disabled {
 
 .metric-label {
     font-size: var(--font-size-sm);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Label cinza claro */
 }
 
 .metric-value {
     font-size: var(--font-size-xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Valor branco */
 }
-.metric-value.text-green { color: var(--color-green-500); }
-.metric-value.text-amber { color: var(--color-amber-500); }
-.metric-value.text-red { color: var(--color-red-500); }
+.metric-value.text-green { color: var(--color-green-400); } /* Verde mais claro para contraste */
+.metric-value.text-amber { color: var(--color-amber-400); } /* Âmbar mais claro para contraste */
+.metric-value.text-red { color: var(--color-red-400); } /* Vermelho mais claro para contraste */
 
 
 /* Players Screen */
@@ -1097,10 +1088,11 @@ button:disabled {
     text-align: center;
     padding-top: var(--spacing-10);
     padding-bottom: var(--spacing-10);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Texto cinza claro */
 }
 .players-no-players .icon { margin-left: auto; margin-right: auto; }
 .players-no-players p { margin-top: var(--spacing-4); font-weight: var(--font-semibold); }
+.players-no-players .text-sm { font-size: var(--font-size-sm); }
 
 
 /* Market Screen */
@@ -1110,7 +1102,7 @@ button:disabled {
 .market-title {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Título branco */
 }
 
 .market-players-grid {
@@ -1129,7 +1121,7 @@ button:disabled {
     text-align: center;
     padding-top: var(--spacing-10);
     padding-bottom: var(--spacing-10);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Texto cinza claro */
 }
 .market-no-players .icon { margin-left: auto; margin-right: auto; }
 .market-no-players p { margin-top: var(--spacing-4); font-weight: var(--font-semibold); }
@@ -1137,10 +1129,11 @@ button:disabled {
 
 /* Standings Screen */
 .standings-container {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo da tabela escuro */
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     overflow-x: auto;
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 .standings-table {
@@ -1150,7 +1143,7 @@ button:disabled {
 }
 
 .standings-table thead {
-    background-color: var(--color-gray-50);
+    background-color: var(--color-gray-800); /* Fundo do cabeçalho da tabela escuro */
 }
 
 .standings-table th {
@@ -1158,10 +1151,10 @@ button:disabled {
     text-align: left;
     font-size: var(--font-size-xs);
     font-weight: var(--font-medium);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Texto do cabeçalho cinza claro */
     text-transform: uppercase;
     letter-spacing: 0.05em; /* tracking-wider */
-    border-bottom: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-700); /* Borda mais escura */
 }
 @media (min-width: 640px) { /* sm breakpoint */
     .standings-table th { padding: var(--spacing-3) var(--spacing-6); }
@@ -1174,13 +1167,14 @@ button:disabled {
 }
 
 .standings-table tbody {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do corpo da tabela escuro */
 }
 
 .standings-table td {
     padding: var(--spacing-4) var(--spacing-2);
     white-space: nowrap;
-    border-bottom: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-800); /* Borda da célula mais escura */
+    color: var(--color-white); /* Texto da célula branco */
 }
 @media (min-width: 640px) { /* sm breakpoint */
     .standings-table td { padding: var(--spacing-4) var(--spacing-6); }
@@ -1193,7 +1187,7 @@ button:disabled {
 }
 
 .standings-table tbody tr.player-team-row {
-    background-color: var(--color-indigo-50);
+    background-color: rgba(var(--color-indigo-500-rgb), 0.1); /* Linha do time do jogador mais sutil */
 }
 
 .standings-pos-circle {
@@ -1206,9 +1200,9 @@ button:disabled {
     font-weight: var(--font-bold);
     border-width: 1px;
 }
-.standings-pos-circle.bg-amber { background-color: var(--color-amber-100); border-color: var(--color-amber-400); color: var(--color-amber-600); }
-.standings-pos-circle.bg-green { background-color: var(--color-green-100); border-color: var(--color-green-400); color: var(--color-green-600); }
-.standings-pos-circle.bg-gray { background-color: var(--color-gray-100); border-color: var(--color-gray-300); color: var(--color-gray-600); }
+.standings-pos-circle.bg-amber { background-color: rgba(var(--color-amber-500-rgb), 0.1); border-color: var(--color-amber-400); color: var(--color-amber-400); } /* Cores mais claras para contraste */
+.standings-pos-circle.bg-green { background-color: rgba(var(--color-green-500-rgb), 0.1); border-color: var(--color-green-400); color: var(--color-green-400); }
+.standings-pos-circle.bg-gray { background-color: var(--color-gray-700); border-color: var(--color-gray-600); color: var(--color-gray-300); }
 
 .standings-team-cell {
     display: flex;
@@ -1219,37 +1213,33 @@ button:disabled {
     width: var(--spacing-6);
     height: var(--spacing-6);
 }
-.standings-team-logo.image-fallback-container {
-    width: var(--spacing-6);
-    height: var(--spacing-6);
-    border-radius: var(--border-radius-full);
-}
 .standings-team-name {
     font-weight: var(--font-medium);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Nome do time branco */
 }
 
-.standings-points { font-weight: var(--font-bold); color: var(--color-gray-800); }
-.standings-stat { color: var(--color-gray-600); }
+.standings-points { font-weight: var(--font-bold); color: var(--color-white); } /* Pontos brancos */
+.standings-stat { color: var(--color-gray-300); } /* Estatísticas cinza claro */
 
 
 /* Tactics Screen */
 .tactics-container {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo escuro */
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-6);
+    color: var(--color-white); /* Texto branco */
 }
 
 .tactics-title {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Título branco */
     margin-bottom: var(--spacing-4);
 }
 
 .tactics-description {
-    color: var(--color-gray-600);
+    color: var(--color-gray-300); /* Descrição cinza claro */
     margin-bottom: var(--spacing-6);
 }
 
@@ -1277,9 +1267,9 @@ button:disabled {
     border-color: var(--color-indigo-600);
 }
 .formation-button:not(.active) {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-700);
-    border-color: var(--color-gray-200);
+    background-color: var(--color-gray-800); /* Fundo do botão escuro */
+    color: var(--color-gray-300); /* Texto cinza claro */
+    border-color: var(--color-gray-700); /* Borda mais escura */
 }
 .formation-button:not(.active):hover {
     border-color: var(--color-indigo-400);
@@ -1289,36 +1279,40 @@ button:disabled {
 /* Editor Screen */
 .editor-container {
     margin-bottom: var(--spacing-6);
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 .editor-title {
     font-size: var(--font-size-3xl);
     font-weight: var(--font-bold);
-    color: var(--color-gray-800);
+    color: var(--color-white); /* Título branco */
 }
 
 .editor-tabs {
     display: flex;
-    border-bottom: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-700); /* Borda mais escura */
 }
 
 .editor-tab-button {
     padding: var(--spacing-2) var(--spacing-4);
     font-weight: var(--font-semibold);
+    background: none;
+    color: var(--color-gray-400); /* Texto da aba cinza claro */
 }
 .editor-tab-button.active {
-    color: var(--color-indigo-600);
-    border-bottom: 2px solid var(--color-indigo-600);
+    color: var(--color-indigo-400); /* Aba ativa mais clara */
+    border-bottom: 2px solid var(--color-indigo-400);
 }
 .editor-tab-button:not(.active) {
     color: var(--color-gray-500);
 }
 
 .editor-content-card {
-    background-color: #fff;
+    background-color: var(--color-gray-900); /* Fundo do card escuro */
     padding: var(--spacing-6);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
+    color: var(--color-white); /* Texto padrão branco */
 }
 
 /* Community Tab */
@@ -1328,10 +1322,11 @@ button:disabled {
 .community-patches-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-semibold);
+    color: var(--color-white); /* Título branco */
 }
 
 .no-patches-message {
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Mensagem cinza claro */
 }
 
 .patch-list {
@@ -1342,15 +1337,16 @@ button:disabled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--color-gray-50);
+    background-color: var(--color-gray-800); /* Fundo do item de patch escuro */
     padding: var(--spacing-3);
     border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-gray-700); /* Borda mais escura */
 }
 
-.patch-version { font-weight: var(--font-bold); }
+.patch-version { font-weight: var(--font-bold); color: var(--color-white); } /* Versão branca */
 .patch-author {
     font-size: var(--font-size-sm);
-    color: var(--color-gray-600);
+    color: var(--color-gray-300); /* Autor cinza claro */
 }
 
 .apply-patch-button {
@@ -1377,14 +1373,16 @@ button:disabled {
 
 .editor-details {
     margin-bottom: var(--spacing-4); /* space-y-4 */
-    background-color: var(--color-gray-50);
+    background-color: var(--color-gray-800); /* Fundo do detalhes escuro */
     padding: var(--spacing-4);
     border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-gray-700); /* Borda mais escura */
 }
 .editor-details summary {
     font-size: var(--font-size-lg);
     font-weight: var(--font-semibold);
     cursor: pointer;
+    color: var(--color-white); /* Título do sumário branco */
 }
 .editor-details summary:focus { outline: none; }
 
@@ -1407,24 +1405,29 @@ button:disabled {
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
+    color: var(--color-white); /* Texto branco */
 }
 .editor-team-logo {
     width: var(--spacing-6);
     height: var(--spacing-6);
 }
-.editor-team-logo.image-fallback-container { /* Estilos de fallback para o logo do time no editor */
+.editor-team-logo-fallback {
     width: var(--spacing-6);
     height: var(--spacing-6);
-    border-radius: var(--border-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-gray-700); /* Fallback do logo escuro */
 }
 
 .editor-input {
     width: 100%;
     font-size: var(--font-size-sm);
     padding: var(--spacing-1-5) var(--spacing-3);
-    background-color: #fff;
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-700); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-600); /* Borda de input */
     border-radius: var(--border-radius-lg);
+    color: var(--color-white); /* Texto branco */
 }
 
 .editor-players-list {
@@ -1433,19 +1436,40 @@ button:disabled {
     overflow-y: auto;
     padding-right: var(--spacing-2); /* pr-2 */
     margin-top: var(--spacing-2);
+    /* Estilos para a barra de scroll */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--color-gray-500) var(--color-gray-800); /* Firefox */
 }
 
+/* Estilos da barra de scroll para Webkit (Chrome, Safari) */
+.editor-players-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor-players-list::-webkit-scrollbar-track {
+    background: var(--color-gray-800);
+    border-radius: 10px;
+}
+
+.editor-players-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-600);
+    border-radius: 10px;
+    border: 2px solid var(--color-gray-800);
+}
+
+
 .editor-player-item {
-    background-color: #fff;
+    background-color: var(--color-gray-800); /* Fundo do item de jogador escuro */
     padding: var(--spacing-2);
     border-radius: var(--border-radius-lg);
-    border: 1px solid;
-    margin-bottom: var(--spacing-2); /* Adjust this for space between player items */
+    border: 1px solid var(--color-gray-700); /* Borda mais escura */
+    margin-bottom: var(--spacing-2);
 }
 
 .editor-player-summary {
     font-weight: var(--font-semibold);
     cursor: pointer;
+    color: var(--color-white); /* Sumário branco */
 }
 
 .editor-player-fields-grid {
@@ -1460,7 +1484,7 @@ button:disabled {
 
 .editor-field-label {
     font-size: var(--font-size-xs);
-    color: var(--color-gray-500);
+    color: var(--color-gray-400); /* Label cinza claro */
 }
 
 .editor-constant-input-group {
@@ -1469,22 +1493,23 @@ button:disabled {
 .editor-constant-label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-medium);
-    color: var(--color-gray-700);
+    color: var(--color-gray-300); /* Label cinza claro */
     text-transform: capitalize;
 }
 .editor-constant-input {
     width: 100%;
     padding: var(--spacing-2);
-    background-color: #fff;
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-700); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-600); /* Borda de input */
     border-radius: var(--border-radius-lg);
     margin-top: var(--spacing-1);
+    color: var(--color-white); /* Texto branco */
 }
 
 .editor-publish-section {
     padding-top: var(--spacing-4);
     margin-top: var(--spacing-4);
-    border-top: 1px solid;
+    border-top: 1px solid var(--color-gray-700); /* Borda mais escura */
 }
 
 .publish-patch-button {
@@ -1503,23 +1528,24 @@ button:disabled {
     background-color: var(--color-green-700);
 }
 
-/* Novo botão para adicionar time */
+/* Modal para Adicionar Novo Time */
 .add-new-team-button {
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
     padding: var(--spacing-2) var(--spacing-4);
-    background-color: var(--color-purple-500); /* Exemplo de cor */
+    background-color: var(--color-blue-600);
     color: #fff;
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
     transition-property: background-color;
     transition-duration: 150ms;
-    margin-top: var(--spacing-4); /* Para separá-lo dos times existentes */
+    margin-top: var(--spacing-4); /* Espaçamento */
 }
 .add-new-team-button:hover {
-    background-color: var(--color-purple-600); /* Use uma cor de hover apropriada */
+    background-color: var(--color-blue-700);
 }
+
 
 /* Publish Modal */
 .publish-modal-input-group {
@@ -1528,15 +1554,16 @@ button:disabled {
 .publish-modal-label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-medium);
-    color: var(--color-gray-700);
+    color: var(--color-gray-300); /* Label cinza claro */
 }
 .publish-modal-input {
     width: 100%;
     margin-top: var(--spacing-1);
     padding: var(--spacing-2) var(--spacing-3);
-    background-color: var(--color-gray-100);
-    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-gray-800); /* Fundo de input escuro */
+    border: 1px solid var(--color-gray-700); /* Borda de input */
     border-radius: var(--border-radius-lg);
+    color: var(--color-white); /* Texto branco */
 }
 
 .publish-modal-actions {
@@ -1547,34 +1574,43 @@ button:disabled {
 }
 
 .publish-modal-cancel-btn {
+    background-color: var(--color-gray-700); /* Botão de cancelar escuro */
+    color: var(--color-white);
     padding: var(--spacing-2) var(--spacing-4);
-    background-color: var(--color-gray-200);
-    color: var(--color-gray-800);
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
 }
 
 .publish-modal-confirm-btn {
-    padding: var(--spacing-2) var(--spacing-4);
     background-color: var(--color-green-600);
     color: #fff;
+    padding: var(--spacing-2) var(--spacing-4);
     border-radius: var(--border-radius-lg);
     font-weight: var(--font-semibold);
 }
 
-/* Footer Nav Bottom */
-.footer-nav-bottom { /* Antigo .footer-nav */
+/* Footer Nav (Barra de Navegação Inferior) */
+.footer-nav-bottom { /* Renomeado de .footer-nav para evitar conflito e ser mais específico */
     width: 100%;
     text-align: center;
     padding: var(--spacing-4);
     position: sticky;
     bottom: 0;
-    background-color: rgba(243, 244, 246, 0.8); /* bg-gray-100/80 */
-    backdrop-filter: blur(8px); /* backdrop-blur-sm */
-    border-top: 1px solid var(--color-gray-200);
+    background-color: rgba(0, 0, 0, 0.8); /* Fundo mais escuro e semi-transparente */
+    backdrop-filter: blur(8px); /* Efeito de desfoque */
+    border-top: 1px solid var(--color-gray-800); /* Borda superior mais escura */
+    z-index: 10; /* Garante que fica por cima do conteúdo */
+    flex-shrink: 0; /* Impede que encolha */
 }
+/* Media query para telas maiores (desativa sticky e fundo transparente) */
 @media (min-width: 768px) { /* md breakpoint */
-    .footer-nav-bottom { position: static; background-color: transparent; backdrop-filter: none; border-top: none; }
+    .footer-nav-bottom {
+        position: static;
+        background-color: transparent;
+        backdrop-filter: none;
+        border-top: none;
+        padding: 0; /* Remover padding se não for necessário */
+    }
 }
 
 .footer-nav-inner {
@@ -1599,20 +1635,22 @@ button:disabled {
     border-top: 4px solid transparent;
     transition-property: color, border-color;
     transition-duration: 150ms;
+    background: none; /* Remover fundo padrão do botão */
+    color: var(--color-gray-400); /* Cor padrão cinza claro */
 }
 @media (min-width: 640px) { /* sm breakpoint */
     .nav-button { padding-top: var(--spacing-3); padding-bottom: var(--spacing-3); font-size: var(--font-size-sm); }
 }
 
 .nav-button.active {
-    color: var(--color-indigo-600);
-    border-color: var(--color-indigo-600);
+    color: var(--color-indigo-400); /* Ativo azul claro */
+    border-color: var(--color-indigo-400);
 }
 .nav-button:not(.active) {
     color: var(--color-gray-500);
 }
 .nav-button:not(.active):hover {
-    color: var(--color-indigo-500);
+    color: var(--color-indigo-300);
 }
 
 .nav-simulate-button-container {
@@ -1656,9 +1694,5 @@ button:disabled {
     to { transform: rotate(360deg); }
 }
 
-/* Já definido anteriormente para notification-modal */
-/* .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; } */
-/* @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-} */
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+/* pulse keyframes defined earlier with notification-modal */
