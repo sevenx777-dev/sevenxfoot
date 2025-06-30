@@ -1,17 +1,16 @@
 import React, { useState, useReducer, useEffect, createContext, useContext, useMemo, FC } from 'react';
-// Removido: import { useWindowDimensions } from 'react-native'; // Não compatível com React Web puro
 
 import { createClient } from '@supabase/supabase-js';
 
-// --- Ícones para a Web ---
+// --- Ícones para a Web (importação direta do lucide-react) ---
 import {
     Users, Trophy, DollarSign, Calendar, TrendingUp, Target, Shield,
     Star, User, PlayCircle, RefreshCw, Mail, Briefcase, XCircle, LogIn, LogOut, Save,
     BarChart, Crosshair, Shirt, Zap, PlusCircle, LucideIcon, LoaderCircle, Wrench, Upload, Send,
-    BriefcaseBusiness // Novo ícone para o Gerente
+    BriefcaseBusiness 
 } from 'lucide-react';
 
-// Importe o arquivo CSS
+// Importe o ficheiro CSS
 import './styles.css';
 
 
@@ -114,7 +113,7 @@ const apiService = {
         const { data, error } = await supabase
             .from('community_patches')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false }); // Ordena por data de criação
 
         if (error) {
             console.error('Erro ao obter patches da comunidade Supabase:', error.message);
@@ -719,7 +718,6 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
             let newWeek = state.week + 1;
             let season = state.season;
 
-            // Fim da temporada
             if (state.week >= (state.database.teams.length - 1) * 2) {
                 newWeek = 1;
                 season++;
@@ -769,7 +767,7 @@ const useGameLogic = (state: GameState, dispatch: React.Dispatch<Action>) => {
 const ImageWithFallback: FC<{ src?: string; fallback: React.ReactNode; className: string }> = ({ src, fallback, className }) => {
     const [error, setError] = useState(false);
     useEffect(() => {
-        setError(false);
+        setError(false); // Resetar erro quando a URL src muda
     }, [src]);
     if (!src || error) { return <div className={`${className} image-fallback-container`}>{fallback}</div>; }
     return <img src={src} onError={() => setError(true)} className={className} alt="" />;
@@ -823,7 +821,6 @@ const MatchResultModal: FC<{ result: GameState['matchResult'] | null; onClose: (
     );
 };
 
-// Modal de Notificação
 const NotificationModal: FC<{ notification: NotificationPayload | null; onClose: () => void }> = ({ notification, onClose }) => {
     useEffect(() => {
         if (notification?.show) {
@@ -852,7 +849,7 @@ const NotificationModal: FC<{ notification: NotificationPayload | null; onClose:
     );
 };
 
-// Cartão de Jogador (exibição e ações)
+
 const PlayerCard: FC<{ player: Player; inTransferMarket?: boolean; }> = ({ player, inTransferMarket = false }) => {
     const { state, handleListForSale, handleAcceptIncomingOffer, handleRejectIncomingOffer, handleMakeOffer } = useGame();
     const isUsersPlayer = player.teamId === state.club.id;
@@ -1062,7 +1059,7 @@ const StandingsScreen = () => {
                         return (
                             <tr key={team.id} className={isPlayerTeam ? 'player-team-row' : ''}>
                                 <td><div className={`standings-pos-circle ${colors.bg} ${colors.border} ${colors.text}`}>{index + 1}</div></td>
-                                <td><div className="standings-team-cell"><ImageWithFallback src={team.logoUrl} fallback={<Shield size={24} className="text-gray-400"/>} className="standings-team-logo"/><span className="standings-team-name">{team.name}</span></div></td>
+                                <td><div className="standings-team-cell"><img src={team.logoUrl} alt={team.name} className="standings-team-logo"/><span className="standings-team-name">{team.name}</span></div></td>
                                 <td className="standings-points">{team.points}</td>
                                 <td className="standings-stat">{team.played}</td>
                                 <td className="standings-stat">{team.wins}</td>
@@ -1097,22 +1094,21 @@ const TacticsScreen = () => {
 }
 
 const EditorScreen = () => {
-    const { state, dispatch, apiService } = useGame(); // apiService agora é acessado via useGame
+    const { state, dispatch, apiService } = useGame();
     const [activeTab, setActiveTab] = useState('Community');
 
     const [publishModalOpen, setPublishModalOpen] = useState(false);
     const [authorName, setAuthorName] = useState('');
     const [patchVersion, setPatchVersion] = useState('1.0');
 
-    // NOVOS ESTADOS PARA ADICIONAR TIME
     const [addTeamModalOpen, setAddTeamModalOpen] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
     const [newTeamLogoUrl, setNewTeamLogoUrl] = useState('');
 
 
-    const [editableTeams, setEditableTeams] = useState<Team[]>([]);
-    const [editablePlayers, setEditablePlayers] = useState<Player[]>([]);
-    const [editableConstants, setEditableConstants] = useState<GameConstantsType>({} as GameConstantsType);
+    const [editableTeams, setEditableTeams] = useState([...state.database.teams]);
+    const [editablePlayers, setEditablePlayers] = useState([...state.leaguePlayers]);
+    const [editableConstants, setEditableConstants] = useState({...state.database.constants});
 
     useEffect(() => {
         setEditableTeams(JSON.parse(JSON.stringify(state.database.teams)));
@@ -1175,26 +1171,22 @@ const EditorScreen = () => {
         }));
     }
 
-    // NOVA FUNÇÃO: ADICIONAR NOVO TIME
     const handleAddNewTeam = () => {
         if (!newTeamName.trim()) {
             dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro', message: 'O nome do time não pode estar vazio!' } });
             return;
         }
 
-        // Gerar um novo ID para o time. Usamos Date.now() + Math.random() para garantir uma alta probabilidade de unicidade.
-        const newTeamId = Date.now() + Math.floor(Math.random() * 1000); // Adiciona um número aleatório para maior unicidade em ms próximos
+        const newTeamId = Date.now() + Math.floor(Math.random() * 1000);
         
-        // Gerar jogadores para o novo time
         const newPlayersForTeam: Player[] = [];
         const positions: PlayerPosition[] = ['GOL', 'ZAG', 'LAT', 'VOL', 'MEI', 'ATA'];
-        // Criamos um número razoável de jogadores para o novo time (exemplo: 1 GOL, 4 ZAG/LAT, 3 VOL/MEI, 3 ATA)
         positions.forEach(pos => {
             let count = 0;
             if (pos === 'GOL') count = 1;
-            else if (pos === 'ZAG' || pos === 'LAT') count = 2; // 2 ZAG, 2 LAT
-            else if (pos === 'VOL' || pos === 'MEI') count = 2; // 2 VOL, 1 MEI (ajuste conforme o ideal para um elenco)
-            else if (pos === 'ATA') count = 3; // 3 ATA
+            else if (pos === 'ZAG' || pos === 'LAT') count = 2;
+            else if (pos === 'VOL' || pos === 'MEI') count = 2;
+            else if (pos === 'ATA') count = 3;
 
             for (let i = 0; i < count; i++) {
                 newPlayersForTeam.push(generatePlayer(newTeamId, newTeamName, pos, state.database.constants));
@@ -1204,17 +1196,17 @@ const EditorScreen = () => {
         const newTeam: Team = {
             id: newTeamId,
             name: newTeamName,
-            logoUrl: newTeamLogoUrl || 'https://via.placeholder.com/96x96.png?text=Logo', // Logo padrão se nenhum for fornecido
-            reputation: 50 // Reputação padrão para novo time
+            logoUrl: newTeamLogoUrl || 'https://via.placeholder.com/96x96.png?text=Logo',
+            reputation: 50
         };
 
         setEditableTeams(prevTeams => [...prevTeams, newTeam]);
         setEditablePlayers(prevPlayers => [...prevPlayers, ...newPlayersForTeam]);
 
         dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Sucesso', message: `Time "${newTeamName}" adicionado!` } });
-        setAddTeamModalOpen(false); // Fechar o modal
-        setNewTeamName(''); // Limpar formulário
-        setNewTeamLogoUrl(''); // Limpar formulário
+        setAddTeamModalOpen(false);
+        setNewTeamName('');
+        setNewTeamLogoUrl('');
     };
 
 
@@ -1236,10 +1228,10 @@ const EditorScreen = () => {
                          ) : (
                             <ul className="patch-list space-y-3">
                                 {state.communityPatches.map(patch => (
-                                    <li key={patch.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                                    <li key={patch.id} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700">
                                         <div>
-                                            <p className="font-bold">Versão {patch.version}</p>
-                                            <p className="text-sm text-gray-600">por {patch.author}</p>
+                                            <p className="font-bold text-white">Versão {patch.version}</p>
+                                            <p className="text-sm text-gray-300">por {patch.author}</p>
                                         </div>
                                         <button onClick={() => handleApplyCommunityPatch(patch)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg font-semibold hover:bg-blue-700 transition-colors">
                                             <Upload size={16}/><span>Aplicar</span>
@@ -1258,8 +1250,8 @@ const EditorScreen = () => {
                                 {editableTeams.map(team => (
                                     <div key={team.id} className="editor-field-group">
                                         <div className="editor-team-input-group">
-                                            <ImageWithFallback src={team.logoUrl} fallback={<Shield size={20}/>} className="editor-team-logo"/>
-                                            <span>{team.name}</span>
+                                            <ImageWithFallback src={team.logoUrl} fallback={<Shield size={20} className="text-gray-400"/>} className="editor-team-logo"/>
+                                            <span className="text-white">{team.name}</span>
                                         </div>
                                         <input type="text" placeholder="Nome da Equipa" value={team.name} onChange={e => handleTeamDataChange(team.id, 'name', e.target.value)} className="editor-input"/>
                                         <input type="text" placeholder="URL do Logo" value={team.logoUrl} onChange={e => handleTeamDataChange(team.id, 'logoUrl', e.target.value)} className="editor-input"/>
@@ -1413,25 +1405,21 @@ const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
     )
 }
 
-// Wrapper do Jogo: Gerencia o estado global e a navegação entre telas
 const GameWrapper = () => {
     const [gameState, dispatch] = useReducer(gameReducer, getInitialState());
-    const { currentUser } = useAuth(); // Usando useAuth para obter currentUser e login/logout
+    const { currentUser } = useAuth();
     const [activeScreen, setActiveScreen] = useState('Painel');
-
-    // Acessa apiService diretamente do contexto Game (se for passado) ou global
-    const { simulateWeek, handleMakeOffer, handleAcceptIncomingOffer, handleRejectIncomingOffer, handleListForSale, handleAcceptManagerOffer, handleRejectManagerOffer } = useGame();
 
     useEffect(() => {
         const loadInitialDataAndUserGame = async () => {
             try {
                 // Load community patches (existing logic)
-                const patches = await apiService.getCommunityPatches(); // apiService agora está disponível globalmente
+                const patches = await apiService.getCommunityPatches();
                 dispatch({ type: 'SET_COMMUNITY_PATCHES', payload: patches });
 
                 if (currentUser && gameState.status === 'main-menu') {
                     console.log("GameWrapper: User logged in, attempting to load saved game...");
-                    const savedGame = await apiService.loadGame(currentUser.id); // apiService disponível
+                    const savedGame = await apiService.loadGame(currentUser.id);
                     if (savedGame) {
                         console.log("GameWrapper: Saved game found, dispatching LOAD_GAME.");
                         dispatch({ type: 'LOAD_GAME', payload: savedGame });
@@ -1449,8 +1437,47 @@ const GameWrapper = () => {
     }, [currentUser, gameState.status, dispatch]);
 
 
-    // As funções que usam apiService diretamente (handleMakeOffer, handleAcceptIncomingOffer, etc.)
-    // agora o obterão do contexto Game, que o tem por ser passado no Provider.
+    const { simulateWeek } = useGameLogic(gameState, dispatch);
+
+    const handleStartGame = (managerName: string, selectedTeamId: number) => {
+        playerIdCounter = 1;
+        dispatch({ type: 'START_GAME', payload: { managerName, selectedTeamId } });
+    };
+
+    const handleLoadGame = (state: GameState) => {
+        dispatch({ type: 'LOAD_GAME', payload: state });
+    }
+
+    const handleMakeOffer = (playerId: number, playerName: string, amount: number) => {
+        if (gameState.club.money < amount) {
+            dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Erro', message: 'Dinheiro insuficiente!' } }); return;
+        }
+        dispatch({ type: 'MAKE_TRANSFER_OFFER_OUTGOING', payload: { playerId, amount } });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Oferta Enviada', message: `Oferta de ${formatCurrency(amount)} por ${playerName}.` } });
+    };
+    const handleAcceptIncomingOffer = (playerId: number) => {
+        dispatch({ type: 'ACCEPT_TRANSFER_OFFER_INCOMING', payload: { playerId } });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Transferência Aceite', message: `Jogador vendido.` } });
+    };
+    const handleRejectIncomingOffer = (playerId: number) => {
+        dispatch({ type: 'REJECT_TRANSFER_OFFER_INCOMING', payload: { playerId } });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Oferta Rejeitada', message: `Você rejeitou a oferta.` } });
+    };
+    const handleListForSale = (playerId: number, isForSale: boolean) => {
+        dispatch({ type: 'LIST_PLAYER_FOR_SALE', payload: { playerId, isForSale } });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Mercado', message: isForSale ? 'Jogador listado.' : 'Jogador retirado da venda.' } });
+    };
+
+    const handleAcceptManagerOffer = (offer: ManagerOffer) => {
+        dispatch({ type: 'ACCEPT_MANAGER_OFFER', payload: offer });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Oferta Aceite!', message: `Você aceitou a oferta do ${offer.offeringTeamName}!` } });
+    };
+
+    const handleRejectManagerOffer = (offer: ManagerOffer) => {
+        dispatch({ type: 'REJECT_MANAGER_OFFER', payload: offer });
+        dispatch({ type: 'SHOW_NOTIFICATION', payload: { title: 'Oferta Rejeitada', message: `Você rejeitou a oferta do ${offer.offeringTeamName}.` } });
+    };
+
     const contextValue: GameContextType = {
         state: gameState,
         dispatch,
@@ -1461,7 +1488,7 @@ const GameWrapper = () => {
         handleListForSale,
         handleAcceptManagerOffer,
         handleRejectManagerOffer,
-        apiService: apiService, // Passe apiService para o contexto Game
+        apiService: apiService,
     };
 
     if (gameState.status === 'main-menu') {
@@ -1474,7 +1501,7 @@ const GameWrapper = () => {
         'Class.': <StandingsScreen />,
         'Mercado': <MarketScreen />,
         'Táticas': <TacticsScreen />,
-        'Gerente': <ManagerScreen />, // Nova tela do Gerente
+        'Gerente': <ManagerScreen />,
         ...(currentUser && {'Editor': <EditorScreen />})
     };
 
@@ -1491,7 +1518,6 @@ const GameWrapper = () => {
                         {screens[activeScreen]}
                     </div>
                 </main>
-                {/* Barra de Navegação Inferior para telas menores */}
                 <nav className="footer-nav-bottom">
                     <div className="footer-nav-inner">
                         {Object.keys(screens).map(name => {
@@ -1512,14 +1538,12 @@ const GameWrapper = () => {
                     </div>
                 </nav>
             </div>
-            {/* Modais flutuantes */}
             <MatchResultModal result={gameState.matchResult} onClose={() => dispatch({ type: 'CLOSE_MODAL' })} />
             <NotificationModal notification={gameState.notification} onClose={() => dispatch({ type: 'HIDE_NOTIFICATION' })} />
         </GameContext.Provider>
     );
 }
 
-// Componente Raiz da Aplicação
 const App = () => {
     return (
         <AuthProvider>
@@ -1528,4 +1552,6 @@ const App = () => {
     )
 }
 
-export default App;
+ReactDOM.createRoot(document.getElementById('root')!).render(
+    React.createElement(App)
+);
