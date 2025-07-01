@@ -1,8 +1,13 @@
 {
   "name": "sevenxfoot",
-  "main": "expo-router/entry",
   "version": "1.0.0",
-  "homepage": "https://sevenx777-dev.github.io", // <-- Adicione esta linha com o seu URL
+  "private": true,
+  "main": "expo-router/entry",
+  "homepage": "https://sevenx777-dev.github.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sevenx777-dev/sevenxfoot777.github.io.git"
+  },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -10,10 +15,11 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build": "expo export:web", // <-- Alterado de "expo export --platform web" para "expo export:web"
+    "build": "expo export:web",
     "tailwind-init": "tailwindcss init",
-    "predeploy": "npm run build",  // <-- Novo script: constrói a app antes do deploy
-    "deploy": "gh-pages -d web-build" // <-- Novo script: envia a pasta de build para gh-pages
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d web-build",
+    "deploy:cf": "wrangler publish"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -22,7 +28,6 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@supabase/supabase-js": "^2.50.2",
-    // Removidas dependências de backend: "bcryptjs", "cors", "dotenv", "express", "pg", "google-auth-library"
     "eas-cli": "^16.13.2",
     "expo": "~53.0.13",
     "expo-blur": "~14.1.5",
@@ -59,7 +64,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "typescript": "~5.8.3",
-    "gh-pages": "^6.1.1" // <-- Nova dependência
-  },
-  "private": true
+    "gh-pages": "^6.1.1",
+    "wrangler": "^3.10.0"
+  }
 }
