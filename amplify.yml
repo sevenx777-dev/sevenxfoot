@@ -10,7 +10,6 @@ frontend:
         - npm run build
         - echo ">>> Conteúdo de dist:" && ls -R dist
   artifacts:
-    # Pasta onde seu build gera os arquivos estáticos
     baseDirectory: dist
     files:
       - '**/*'
