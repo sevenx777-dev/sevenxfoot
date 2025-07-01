@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
-  "homepage": "https://sevenx777-dev.github.io",
+  "homepage": "https://sevenxfoot.rianpenha113.workers.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sevenx777-dev/sevenxfoot777.github.io.git"
+    "url": "git+https://github.com/sevenx777-dev/sevenxfoot777.git"
   },
   "scripts": {
     "start": "expo start",
